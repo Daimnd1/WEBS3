@@ -3,7 +3,7 @@ import { ShoppingCart, Star, UserCircle } from 'lucide-react';
 
 const navbar = () => {
     return (
-        <nav className="fixed top-0 flex h-16 w-screen flex-row items-center justify-between border-b border-slate-200 bg-transparent px-4 shadow-md md:h-24 md:px-8">
+        <nav className="fixed top-0 flex h-16 w-screen flex-row items-center justify-between border-b border-slate-200/50 bg-white/80 backdrop-blur-md px-4 shadow-md z-50 md:h-24 md:px-8">
             <Link href="/">
                 <p className="text-xl font-bold text-slate-800 md:text-2xl">
                     Gimme
