@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ShoppingCart, Star, UserCircle } from 'lucide-react';
+import { ShoppingCart, Star, UserCircle, Package } from 'lucide-react';
 
 const navbar = () => {
     return (
@@ -15,6 +15,13 @@ const navbar = () => {
                 className="mx-6 hidden w-full max-w-4xl rounded-full border-2 border-slate-200 px-4 py-2 text-slate-700 transition-colors duration-200 placeholder:font-light placeholder:text-neutral-400 focus-visible:border-emerald-500 focus-visible:outline-none md:block"
             />
             <div className="flex gap-4">
+                <Link
+                    href={'/products'}
+                    className="cursor-pointer rounded-lg p-2 text-emerald-500 transition-colors duration-200 hover:text-emerald-700"
+                    title="All Products"
+                >
+                    <Package size={24} />
+                </Link>
                 <Link
                     href={'/'}
                     className="cursor-pointer rounded-lg p-2 text-emerald-500 transition-colors duration-200 hover:text-emerald-700"
