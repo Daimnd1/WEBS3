@@ -5,12 +5,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import {
     ChevronRight,
-    GamepadIcon,
-    Headphones,
     Heart,
-    Monitor,
     ShoppingCart,
-    Smartphone,
     Star,
     Zap,
 } from 'lucide-react';
