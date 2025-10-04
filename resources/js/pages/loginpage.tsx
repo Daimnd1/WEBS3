@@ -1,4 +1,6 @@
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { Link } from '@inertiajs/react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -12,7 +14,7 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <div className="flex flex-col w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
                 <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">
                     Login to Your Account
                 </h2>
@@ -59,6 +61,10 @@ export default function LoginPage() {
                         Sign up
                     </a>
                 </p>
+
+                <Button className="mt-6 self-center rounded-xl bg-green-600 py-2 text-white shadow-md transition hover:bg-green-700">
+                    <Link href="/">Go to Home</Link>
+                </Button>
             </div>
         </div>
     );
