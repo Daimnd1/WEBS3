@@ -141,3 +141,46 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Swiper carousel styles - Cleaner approach with CSS variables */
+.hero-swiper {
+    @apply w-full h-full;
+    
+    /* Override Swiper's CSS variables */
+    --swiper-navigation-color: white;
+    --swiper-pagination-color: white;
+    --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-swiper .swiper-pagination {
+    bottom: 1.25rem;
+}
+
+.hero-swiper.swiper .swiper-pagination-bullet {
+    @apply w-3 h-3 opacity-100 transition-all duration-300;
+}
+
+.hero-swiper.swiper .swiper-pagination-bullet-active {
+    @apply scale-110;
+}
+
+.hero-swiper.swiper .swiper-button-next,
+.hero-swiper.swiper .swiper-button-prev {
+    @apply bg-transparent w-auto h-auto border-0 transition-all duration-300;
+    margin-top: -0.75rem;
+}
+
+.hero-swiper .swiper-button-prev {
+    left: 0.625rem;
+}
+
+.hero-swiper.swiper .swiper-button-next:hover,
+.hero-swiper.swiper .swiper-button-prev:hover {
+    @apply scale-110;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-swiper.swiper .swiper-button-next::after,
+.hero-swiper.swiper .swiper-button-prev::after {
+    @apply text-xl font-bold leading-none;
+}
