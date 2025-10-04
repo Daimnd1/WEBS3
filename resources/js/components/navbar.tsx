@@ -36,7 +36,7 @@ const navbar = () => {
                 </Link>
                 <Link
                     href={'/login'}
-                    className="cursor-pointer rounded-lg p-2 text-emerald-500 transition-colors duration-200 hover:text-emerald-700"
+                    className="cursor-pointer rounded-lg p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700"
                 >
                     <UserCircle size={24} />
                 </Link>
