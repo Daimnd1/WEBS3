@@ -35,8 +35,8 @@ const navbar = () => {
                     <ShoppingCart size={24} />
                 </Link>
                 <Link
-                    href={'/'}
-                    className="cursor-pointer rounded-lg p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700"
+                    href={'/login'}
+                    className="cursor-pointer rounded-lg p-2 text-emerald-500 transition-colors duration-200 hover:text-emerald-700"
                 >
                     <UserCircle size={24} />
                 </Link>

@@ -13,3 +13,7 @@ Route::get('/products', function () {
         'category' => $category
     ]);
 })->name('products');
+
+Route::get('/login', function () {
+    return Inertia::render('loginpage');
+})->name('loginpage');
