@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronRight, Star, ShoppingCart, Zap, Smartphone, Headphones, Monitor, Camera, GamepadIcon, Heart } from 'lucide-react';
+import { ChevronRight, Star, ShoppingCart, Zap, Smartphone, Headphones, Monitor, GamepadIcon, Heart } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, Mousewheel } from 'swiper/modules';
 import 'swiper/css';

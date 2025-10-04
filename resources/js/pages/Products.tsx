@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,9 +34,7 @@ interface ProductsPageProps {
     category?: string;
 }
 
-export default function Products({ category: initialCategory }: ProductsPageProps) {
-    // All products data (same as from Home.tsx)
-    const allProducts: Product[] = [
+const allProducts: Product[] = [
         // Laptops
         { id: 101, name: "MacBook Air M2", price: 1299, originalPrice: 1499, image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=200&fit=crop", rating: 4.8, reviews: 245, category: "laptops" },
         { id: 102, name: "Dell XPS 13", price: 999, originalPrice: 1199, image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&h=200&fit=crop", rating: 4.6, reviews: 189, category: "laptops" },
@@ -78,6 +76,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
         { id: 408, name: "Nintendo Switch Lite", price: 199, originalPrice: 229, image: "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=300&h=200&fit=crop", rating: 4.3, reviews: 789, category: "gaming" },
     ];
 
+export default function Products({ category: initialCategory }: ProductsPageProps) {
     // State management
     const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -111,7 +110,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
 
         // Sort products
         filtered.sort((a, b) => {
-            let aValue: any, bValue: any;
+            let aValue: string | number, bValue: string | number;
 
             switch (sortBy) {
                 case 'price':
@@ -139,7 +138,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
         });
 
         return filtered;
-    }, [selectedCategory, searchQuery, sortBy, sortOrder, allProducts]);
+    }, [selectedCategory, searchQuery, sortBy, sortOrder]);
 
     // Update URL when category changes
     useEffect(() => {
