@@ -162,7 +162,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
             <Head title={`${getCurrentCategoryName()} - Gimme Electronics`} />
             <AppLayout>
                 {/* Header Section */}
-                <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 px-4 pt-32 pb-8">
+                <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 px-4 pt-48 pb-8">
                     <div className="mx-auto max-w-7xl">
                         <div className="text-center text-white">
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -204,7 +204,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
-                                        className="text-sm text-slate-700 border rounded-md px-3 py-1"
+                                        className="h-8 text-sm text-slate-700 bg-white/60 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/80"
                                     >
                                         <option value="name">Name</option>
                                         <option value="price">Price</option>
@@ -230,7 +230,7 @@ export default function Products({ category: initialCategory }: ProductsPageProp
                         <div className="flex flex-col lg:flex-row gap-8">
                             {/* Sidebar - Categories */}
                             <div className="lg:w-64 flex-shrink-0">
-                                <div className="bg-white/80 text-slate-700 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/50 p-6 sticky top-24">
+                                <div className="bg-white/80 text-slate-700 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/50 p-6 top-24">
                                     <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                                         <Filter className="h-5 w-5" />
                                         Categories

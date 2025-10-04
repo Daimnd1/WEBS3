@@ -458,7 +458,7 @@ export default function Home() {
                                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                                     Add to Cart
                                                 </Button>
-                                                <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-blue-600 text-base px-6 py-2">
+                                                <Button variant="outline" size="lg" className="text-slate-700 border-none bg-white/80 hover:bg-white/60 hover:text-slate-900 text-base px-6 py-2">
                                                     Learn More
                                                 </Button>
                                             </div>
@@ -500,8 +500,8 @@ export default function Home() {
                                         </div>
                                         <h2 className="text-3xl font-bold text-gray-900">{category.name}</h2>
                                     </div>
-                                    <Link href={`/category/${category.name.toLowerCase()}`}>
-                                        <Button variant="outline" className="group">
+                                    <Link href={`/products?category=${category.name.toLowerCase()}`}>
+                                        <Button variant="outline" className="group bg-white/80 hover:bg-gray-100 hover:scale-105 hover:shadow-lg text-gray-800 border-none hover:text-emerald-600 shadow-md">
                                             See More
                                             <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                         </Button>
@@ -509,16 +509,21 @@ export default function Home() {
                                 </div>
 
                                 {/* Products Row - Horizontally Scrollable */}
-                                <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth">
+                                <div className="flex gap-6 overflow-x-auto pb-6 p-4 scroll-smooth">
                                     {category.products.map((product) => (
-                                        <Card key={product.id} className="min-w-[280px] group hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border-slate-200/50">
+                                        <Card key={product.id} className="min-w-[280px] group hover:shadow-lg hover:scale-105 transition-all duration-300 bg-white/80 backdrop-blur-sm border-slate-200/50">
                                             <div className="relative">
                                                 <img
                                                     src={product.image}
                                                     alt={product.name}
-                                                    className="h-48 w-full object-cover transition-transform group-hover:scale-105"
+                                                    className="h-48 w-full object-cover"
                                                 />
-                                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {/* Heart icon for favorites */}
+                                                <button className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110">
+                                                    <Heart className="h-4 w-4 text-gray-400 hover:text-red-500 transition-colors" />
+                                                </button>
+                                                {/* Shopping cart icon */}
+                                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
                                                     <ShoppingCart className="h-4 w-4 text-emerald-600" />
                                                 </div>
                                             </div>
@@ -536,9 +541,6 @@ export default function Home() {
                                                             ${product.originalPrice}
                                                         </span>
                                                     </div>
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        Save ${product.originalPrice - product.price}
-                                                    </Badge>
                                                 </div>
                                             </CardContent>
                                         </Card>
