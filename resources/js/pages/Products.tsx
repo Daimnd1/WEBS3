@@ -623,56 +623,60 @@ export default function Products({
                                 ) : (
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                         {filteredProducts.map((product) => (
-                                            <Card
+                                            <Link 
                                                 key={product.id}
-                                                className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                                            >
-                                                <div className="relative">
-                                                    <img
-                                                        src={product.image}
-                                                        alt={product.name}
-                                                        className="h-48 w-full rounded-xl bg-gray-50 object-cover"
-                                                    />
-                                                    <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                                                        <ShoppingCart className="h-4 w-4 text-indigo-600" />
+                                                href={`/product/${product.id}`}                                                className='block'>
+                                                <Card
+                                                    // key={product.id}
+                                                    className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                                                >
+                                                    <div className="relative">
+                                                        <img
+                                                            src={product.image}
+                                                            alt={product.name}
+                                                            className="h-48 w-full rounded-xl bg-gray-50 object-cover"
+                                                        />
+                                                        <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                                                            <ShoppingCart className="h-4 w-4 text-indigo-600" />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <CardContent className="p-4 text-slate-800">
-                                                    <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900">
-                                                        {product.name}
-                                                    </h3>
-                                                    <div className="mb-3 flex items-center">
-                                                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                        <span className="ml-1 text-sm font-medium text-slate-700">
-                                                            {product.rating}
-                                                        </span>
-                                                        <span className="ml-1 text-sm text-slate-500">
-                                                            ({product.reviews})
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <span className="text-xl font-bold text-indigo-600">
-                                                                ${product.price}
+                                                    <CardContent className="p-4 text-slate-800">
+                                                        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900">
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="mb-3 flex items-center">
+                                                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                            <span className="ml-1 text-sm font-medium text-slate-700">
+                                                                {product.rating}
                                                             </span>
-                                                            <span className="ml-2 text-sm text-gray-500 line-through">
-                                                                $
-                                                                {
-                                                                    product.originalPrice
-                                                                }
+                                                            <span className="ml-1 text-sm text-slate-500">
+                                                                ({product.reviews})
                                                             </span>
                                                         </div>
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className="text-xs"
-                                                        >
-                                                            Save $
-                                                            {product.originalPrice -
-                                                                product.price}
-                                                        </Badge>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <span className="text-xl font-bold text-indigo-600">
+                                                                    ${product.price}
+                                                                </span>
+                                                                <span className="ml-2 text-sm text-gray-500 line-through">
+                                                                    $
+                                                                    {
+                                                                        product.originalPrice
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
+                                                                Save $
+                                                                {product.originalPrice -
+                                                                    product.price}
+                                                            </Badge>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            </Link>
                                         ))}
                                     </div>
                                 )}

@@ -13,3 +13,10 @@ Route::get('/products', function () {
         'category' => $category
     ]);
 })->name('products');
+
+Route::get('/product/{id}', function ($id) {
+    // $id = request('id');
+    return Inertia::render('Product', [
+        'productId' => $id
+    ]);
+})->name('product.show');
