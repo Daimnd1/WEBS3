@@ -9,7 +9,7 @@ export default function Welcome() {
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">
                         Welcome
                     </h1>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-lg text-green-600">
                         Your Laravel + React application is ready to build.
                     </p>
                 </div>
