@@ -1,17 +1,36 @@
-﻿import React, { useEffect } from 'react';
-import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, Gift, ShieldCheck } from 'lucide-react';
+﻿import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
 
-export default function CartHeader({
-  itemCount,
-  onBack,
-  onLike,
-  onShare,
-}: {
-  itemCount: number;
-  onBack: () => void;
-  onLike: () => void;
-  onShare: () => void;
-}): React.ReactElement {
+export default function CartVisualisationDemo(): React.ReactElement {
+  const [items, setItems] = useState([
+    { id: 1, name: 'Wireless Mechanical Keyboard', price: 120, quantity: 1 },
+    { id: 2, name: 'Wireless Mouse', price: 39, quantity: 2 },
+  ]);
+
+  // Derived totals
+  const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
+  const subtotal = items.reduce((acc, it) => acc + it.quantity * it.price, 0);
+  const total = subtotal; 
+
+  // Handlers
+  const inc = (id: number) => {
+    setItems(prev =>
+      prev.map(it => (it.id === id ? { ...it, quantity: it.quantity + 1 } : it))
+    );
+  };
+
+  const dec = (id: number) => {
+    setItems(prev =>
+      prev.map(it =>
+        it.id === id ? { ...it, quantity: Math.max(1, it.quantity - 1) } : it
+      )
+    );
+  };
+
+  const remove = (id: number) => {
+    setItems(prev => prev.filter(it => it.id !== id));
+  };
+
   useEffect(() => {
     document.body.style.backgroundColor = '#f1f5f9';
     document.documentElement.style.backgroundColor = '#f1f5f9';
@@ -28,7 +47,7 @@ export default function CartHeader({
           <button
             type="button"
             aria-label="Go back"
-            onClick={onBack}
+            onClick={() => window.history.back()}
             className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
           >
             <ArrowLeft size={20} />
@@ -45,7 +64,6 @@ export default function CartHeader({
           <button
             type="button"
             aria-label="Save for later"
-            onClick={onLike}
             className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
           >
             <Heart size={20} />
@@ -54,7 +72,6 @@ export default function CartHeader({
           <button
             type="button"
             aria-label="Share cart"
-            onClick={onShare}
             className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
           >
             <Share2 size={20} />
@@ -64,123 +81,78 @@ export default function CartHeader({
       </header>
 
       <div className="mx-4 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <section
-          aria-labelledby="cart-items-title"
-          className="lg:col-span-2 space-y-4"
-        >
+       
+        <section aria-labelledby="cart-items-title" className="lg:col-span-2 space-y-4">
           <h2 id="cart-items-title" className="text-xl font-semibold text-slate-900">
             Cart Items
           </h2>
 
-          <article className="flex p-6 text-slate-900 bg-white rounded-2xl shadow-lg">
-            <div className="flex items-start gap-4 w-full">
-              <figure className="w-20 h-20 rounded-md bg-indigo-600 text-white flex items-center justify-center overflow-hidden">
-                <img
-                  src="https://placehold.co/80x80/94A3B8/ffffff?text=KBD"
-                  alt="Wireless Mechanical Keyboard"
-                  className="w-full h-full object-cover"
-                />
-                <figcaption className="sr-only">Product image</figcaption>
-              </figure>
+          {items.map(item => (
+            <article key={item.id} className="flex p-6 text-slate-900 bg-white rounded-2xl shadow-lg">
+              <div className="flex items-start gap-4 w-full">
+                <figure className="w-20 h-20 rounded-md bg-indigo-600 text-white flex items-center justify-center overflow-hidden">
+                  <img
+                    src="https://placehold.co/80x80/94A3B8/ffffff?text=IMG"
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </figure>
 
-              <header className="flex flex-col gap-3">
-                <h3 className="text-2xl font-semibold leading-tight">Wireless Mechanical Keyboard</h3>
-                <p className="text-sm text-slate-500">SKU: keyboard</p>
-                <div className="flex items-center gap-3">
-                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
-                    In Stock
-                  </span>
-                  <span className="text-sm text-slate-500">SHIPS WITHIN 24H</span>
-                </div>
-                <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 rounded-full px-4 py-2 w-max">
-                  <ShoppingCart size={16} className="opacity-70" />
-                  <span className="text-sm font-medium">$120.00 each</span>
-                </div>
-              </header>
-
-              <aside
-                aria-label="Item actions"
-                className="relative flex flex-col justify-between items-end ml-auto self-stretch"
-              >
-                <button aria-label="Remove item" className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 p-2">
-                  <X size={18} />
-                </button>
-                <div className="flex items-center gap-6 mt-auto pt-6">
-                  <div className="flex items-center rounded-xl border bg-white px-3 py-2 shadow-sm">
-                    <button aria-label="Decrease quantity" className="px-2 py-1 text-slate-500 hover:text-slate-700">
-                      −
-                    </button>
-                    <span className="px-4 text-slate-900">1</span>
-                    <button aria-label="Increase quantity" className="px-2 py-1 text-slate-500 hover:text-slate-700">
-                      ＋
-                    </button>
+                <header className="flex flex-col gap-3">
+                  <h3 className="text-2xl font-semibold leading-tight">{item.name}</h3>
+                  <p className="text-sm text-slate-500">SKU: product-{item.id}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
+                      In Stock
+                    </span>
+                    <span className="text-sm text-slate-500">SHIPS WITHIN 24H</span>
                   </div>
-                  <footer className="text-right">
-                    <p className="text-2xl font-bold">$120.00</p>
-                    <p className="text-xs text-slate-500 tracking-wide">ITEM TOTAL</p>
-                  </footer>
-                </div>
-              </aside>
-            </div>
-          </article>
-
-          <article className="flex p-6 text-slate-900 bg-white rounded-2xl shadow-lg">
-            <div className="flex items-start gap-4 w-full">
-              <figure className="w-20 h-20 rounded-md bg-indigo-600 text-white flex items-center justify-center overflow-hidden">
-                <img
-                  src="https://placehold.co/80x80/94A3B8/ffffff?text=KBD"
-                  alt="Wireless Mechanical Keyboard"
-                  className="w-full h-full object-cover"
-                />
-                <figcaption className="sr-only">Product image</figcaption>
-              </figure>
-
-              <header className="flex flex-col gap-3">
-                <h3 className="text-2xl font-semibold leading-tight">Wireless Mechanical Keyboard</h3>
-                <p className="text-sm text-slate-500">SKU: keyboard</p>
-                <div className="flex items-center gap-3">
-                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
-                    In Stock
-                  </span>
-                  <span className="text-sm text-slate-500">SHIPS WITHIN 24H</span>
-                </div>
-                <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 rounded-full px-4 py-2 w-max">
-                  <ShoppingCart size={16} className="opacity-70" />
-                  <span className="text-sm font-medium">$120.00 each</span>
-                </div>
-              </header>
-
-              <aside
-                aria-label="Item actions"
-                className="relative flex flex-col justify-between items-end ml-auto self-stretch"
-              >
-                <button aria-label="Remove item" className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 p-2">
-                  <X size={18} />
-                </button>
-                <div className="flex items-center gap-6 mt-auto pt-6">
-                  <div className="flex items-center rounded-xl border bg-white px-3 py-2 shadow-sm">
-                    <button aria-label="Decrease quantity" className="px-2 py-1 text-slate-500 hover:text-slate-700">
-                      −
-                    </button>
-                    <span className="px-4 text-slate-900">1</span>
-                    <button aria-label="Increase quantity" className="px-2 py-1 text-slate-500 hover:text-slate-700">
-                      ＋
-                    </button>
+                  <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 rounded-full px-4 py-2 w-max">
+                    <ShoppingCart size={16} className="opacity-70" />
+                    <span className="text-sm font-medium">${item.price.toFixed(2)} each</span>
                   </div>
-                  <footer className="text-right">
-                    <p className="text-2xl font-bold">$120.00</p>
-                    <p className="text-xs text-slate-500 tracking-wide">ITEM TOTAL</p>
-                  </footer>
-                </div>
-              </aside>
-            </div>
-          </article>
+                </header>
+
+                <aside className="relative flex flex-col justify-between items-end ml-auto self-stretch">
+                  <button
+                    aria-label="Remove item"
+                    onClick={() => remove(item.id)}
+                    className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 p-2"
+                  >
+                    <X size={18} />
+                  </button>
+                  <div className="flex items-center gap-6 mt-auto pt-6">
+                    <div className="flex items-center rounded-xl border bg-white px-3 py-2 shadow-sm">
+                      <button
+                        aria-label="Decrease quantity"
+                        onClick={() => dec(item.id)}
+                        disabled={item.quantity <= 1}
+                        className="px-2 py-1 text-slate-500 hover:text-slate-700 disabled:opacity-40"
+                      >
+                        −
+                      </button>
+                      <span className="px-4 text-slate-900 tabular-nums">{item.quantity}</span>
+                      <button
+                        aria-label="Increase quantity"
+                        onClick={() => inc(item.id)}
+                        className="px-2 py-1 text-slate-500 hover:text-slate-700"
+                      >
+                        ＋
+                      </button>
+                    </div>
+                    <footer className="text-right">
+                      <p className="text-2xl font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-xs text-slate-500 tracking-wide">ITEM TOTAL</p>
+                    </footer>
+                  </div>
+                </aside>
+              </div>
+            </article>
+          ))}
         </section>
 
-        <aside
-          aria-labelledby="order-summary-title"
-          className="bg-white rounded-3xl shadow-lg p-6 h-max sticky top-6"
-        >
+       
+        <aside aria-labelledby="order-summary-title" className="bg-white rounded-3xl shadow-lg p-6 h-max sticky top-6">
           <h2 id="order-summary-title" className="text-2xl font-semibold text-slate-900">
             Order Summary
           </h2>
@@ -188,8 +160,8 @@ export default function CartHeader({
 
           <dl className="mt-6 space-y-3 text-slate-700">
             <div className="flex items-center justify-between">
-              <dt>Subtotal (3 items)</dt>
-              <dd className="tabular-nums">$846.00</dd>
+              <dt>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})</dt>
+              <dd className="tabular-nums">${subtotal.toFixed(2)}</dd>
             </div>
             <div className="flex items-center justify-between">
               <dt className="flex items-center gap-2">
@@ -206,7 +178,7 @@ export default function CartHeader({
 
           <div className="flex items-baseline justify-between">
             <span className="text-xl font-semibold text-slate-900">Total</span>
-            <span className="text-2xl font-bold text-slate-900 tabular-nums">$1,023.66</span>
+            <span className="text-2xl font-bold text-slate-900 tabular-nums">${total.toFixed(2)}</span>
           </div>
 
           <button
@@ -225,7 +197,6 @@ export default function CartHeader({
         </aside>
       </div>
 
-      {/* (Optional) page footer */}
       <footer className="h-10" />
     </main>
   );
