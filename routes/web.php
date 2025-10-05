@@ -21,5 +21,5 @@ Route::get('/login', function () {
 
 Route::get('/cart', function () {
     return Inertia::render('CartVisualizationDemo');
-});
+})->name('cart');
 
