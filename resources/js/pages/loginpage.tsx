@@ -63,7 +63,7 @@ export default function LoginPage() {
                 </p>
 
                 <Button className="mt-6 self-center rounded-xl bg-green-600 py-2 text-white shadow-md transition hover:bg-green-700">
-                    <Link href="/">Go to Home</Link>
+                    <Link href="Home.tsx">Go to Home</Link>
                 </Button>
             </div>
         </div>
