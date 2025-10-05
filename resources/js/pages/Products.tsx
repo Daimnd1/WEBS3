@@ -353,21 +353,6 @@ export default function Products({
                         </div>
                     </div>
                 </section>
-
-                {/* Back to Home */}
-                <section className="bg-gray-50 px-4 py-8">
-                    <div className="mx-auto max-w-7xl text-center">
-                        <Link href="/">
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="group"
-                            >
-                                ← Back to Home
-                            </Button>
-                        </Link>
-                    </div>
-                </section>
             </AppLayout>
         </>
     );
