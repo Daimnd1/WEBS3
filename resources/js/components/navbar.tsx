@@ -29,7 +29,7 @@ const navbar = () => {
                     <Star size={24} />
                 </Link>
                 <Link
-                    href={'/'}
+                    href={'/cart'}
                     className="cursor-pointer rounded-lg p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700"
                 >
                     <ShoppingCart size={24} />

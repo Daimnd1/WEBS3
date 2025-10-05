@@ -173,7 +173,7 @@ export default function Home() {
                                         </h2>
                                     </div>
                                     <Link
-                                        href={`/category/${category.name.toLowerCase()}`}
+                                        href={`/products?category=${category.name.toLowerCase()}`}
                                     >
                                         <Button
                                             variant="outline"
