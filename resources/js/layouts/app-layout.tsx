@@ -1,3 +1,5 @@
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 import { ReactNode } from 'react';
 
 interface AppLayoutProps {
@@ -5,5 +7,11 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+    return (
+        <main className="min-h-screen">
+            <Navbar />
+            {children}
+            <Footer />
+        </main>
+    );
 }
