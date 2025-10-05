@@ -1,6 +1,7 @@
-import { allProducts } from '@/data/products';
+import { allProducts } from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Star } from 'lucide-react';
+
 
 interface ProductPageProps {
     productId: number;

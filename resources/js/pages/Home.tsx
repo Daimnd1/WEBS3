@@ -177,7 +177,7 @@ export default function Home() {
                                     >
                                         <Button
                                             variant="outline"
-                                            className="group"
+                                            className="group border-transparent bg-indigo-800 hover:bg-indigo-900"
                                         >
                                             See More
                                             <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -188,9 +188,10 @@ export default function Home() {
                                 {/* Products Row - Horizontally Scrollable */}
                                 <div className="scrollbar-hide flex gap-6 overflow-x-auto scroll-smooth pb-4">
                                     {category.products.map((product) => (
-                                        <Link 
-                                        key={product.id}
-                                        href={`/product/${product.id}`}>
+                                        <Link
+                                            key={product.id}
+                                            href={`/product/${product.id}`}
+                                        >
                                             <Card
                                                 key={product.id}
                                                 className="group min-w-[280px] border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg"
@@ -199,7 +200,7 @@ export default function Home() {
                                                     <img
                                                         src={product.image}
                                                         alt={product.name}
-                                                        className="h-48 w-full rounded-xl object-cover"
+                                                        className="h-64 w-full rounded-xl object-cover"
                                                     />
                                                     <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
                                                         <ShoppingCart className="h-4 w-4 text-indigo-600" />
@@ -230,14 +231,6 @@ export default function Home() {
                                                                 }
                                                             </span>
                                                         </div>
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className="text-xs"
-                                                        >
-                                                            Save $
-                                                            {product.originalPrice -
-                                                                product.price}
-                                                        </Badge>
                                                     </div>
                                                 </CardContent>
                                             </Card>

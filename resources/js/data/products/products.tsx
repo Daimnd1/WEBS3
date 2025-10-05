@@ -1,6 +1,23 @@
 import { Monitor, Smartphone, Headphones, GamepadIcon } from 'lucide-react';
 
-const categories = [
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+    originalPrice: number;
+    image: string;
+    rating: number;
+    reviews: number;
+    category: string;
+}
+
+interface Category {
+    name: string;
+    icon: React.ReactNode;
+    products: Product[];
+}
+
+const categories: Category[] = [
     {
         name: 'Laptops',
         icon: <Monitor className="h-6 w-6" />,
@@ -347,4 +364,6 @@ const categories = [
     },
 ];
 
+
 export default categories;
+export const allProducts = categories.flatMap((category) => category.products);

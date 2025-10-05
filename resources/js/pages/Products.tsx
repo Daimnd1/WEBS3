@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { allProducts} from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import {
@@ -18,24 +19,10 @@ import {
     Star,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import categories from '@/data/products/products';
-
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    originalPrice: number;
-    image: string;
-    rating: number;
-    reviews: number;
-    category: string;
-}
 
 interface ProductsPageProps {
     category?: string;
 }
-
- const allProducts: Product[] = categories.flatMap(category => category.products);
 
 export default function Products({
     category: initialCategory,
@@ -296,25 +283,26 @@ export default function Products({
                                 ) : (
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                         {filteredProducts.map((product) => (
-                                            <Link 
+                                            <Link
                                                 key={product.id}
-                                                href={`/product/${product.id}`}                                                className='block'>
+                                                href={`/product/${product.id}`}
+                                                className="block"
+                                            >
                                                 <Card
-                                                    // key={product.id}
                                                     className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
                                                 >
                                                     <div className="relative">
                                                         <img
                                                             src={product.image}
                                                             alt={product.name}
-                                                            className="h-48 w-full rounded-xl bg-gray-50 object-cover"
+                                                            className="h-64 w-full rounded-xl bg-gray-50 object-cover"
                                                         />
                                                         <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
                                                             <ShoppingCart className="h-4 w-4 text-indigo-600" />
                                                         </div>
                                                     </div>
                                                     <CardContent className="p-4 text-slate-800">
-                                                        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900">
+                                                        <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
                                                             {product.name}
                                                         </h3>
                                                         <div className="mb-3 flex items-center">
@@ -323,13 +311,20 @@ export default function Products({
                                                                 {product.rating}
                                                             </span>
                                                             <span className="ml-1 text-sm text-slate-500">
-                                                                ({product.reviews})
+                                                                (
+                                                                {
+                                                                    product.reviews
+                                                                }
+                                                                )
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center justify-between">
                                                             <div>
                                                                 <span className="text-xl font-bold text-indigo-600">
-                                                                    ${product.price}
+                                                                    $
+                                                                    {
+                                                                        product.price
+                                                                    }
                                                                 </span>
                                                                 <span className="ml-2 text-sm text-gray-500 line-through">
                                                                     $
@@ -338,14 +333,6 @@ export default function Products({
                                                                     }
                                                                 </span>
                                                             </div>
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className="text-xs"
-                                                            >
-                                                                Save $
-                                                                {product.originalPrice -
-                                                                    product.price}
-                                                            </Badge>
                                                         </div>
                                                     </CardContent>
                                                 </Card>
