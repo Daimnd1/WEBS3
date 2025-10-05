@@ -1,4 +1,5 @@
 import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 import { ReactNode } from 'react';
 
 interface AppLayoutProps {
@@ -10,6 +11,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <main className="min-h-screen">
             <Navbar />
             {children}
+            <Footer />
         </main>
     );
 }
