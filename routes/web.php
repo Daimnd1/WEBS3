@@ -30,3 +30,9 @@ Route::get('/cart', function () {
     return Inertia::render('CartVisualizationDemo');
 })->name('cart');
 
+Route::get('/favorites', function () {
+    return Inertia::render('favorites');
+})->name('favorites');
+
+
+
