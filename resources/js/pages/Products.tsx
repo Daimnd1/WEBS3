@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { allProducts} from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
+import { useFavorites } from '@/lib/useFavorites'
 import {
     Filter,
     GamepadIcon,
@@ -17,8 +18,10 @@ import {
     SortAsc,
     SortDesc,
     Star,
+    Heart,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState} from 'react';
+
 
 interface ProductsPageProps {
     category?: string;
@@ -34,6 +37,8 @@ export default function Products({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const { isFav, toggle } = useFavorites();
+
 
     // Categories with icons
     const categories = [
@@ -292,24 +297,40 @@ export default function Products({
                                                     className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
                                                 >
                                                     <div className="relative">
+                                                    
                                                         <img
                                                             src={product.image}
                                                             alt={product.name}
                                                             className="h-64 w-full rounded-xl bg-gray-50 object-cover"
                                                         />
                                                         <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                                                            <ShoppingCart className="h-4 w-4 text-indigo-600" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.id); }}
+                                                            className="rounded-full bg-white/90 p-2 shadow hover:scale-110 transition"
+                                                            aria-label={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
+                                                            title={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
+                                                        >
+                                                            <Heart
+                                                            size={18}
+                                                            className={isFav(product.id) ? "text-red-600" : "text-slate-400"}
+                                                            fill={isFav(product.id) ? "currentColor" : "none"}
+                                                            />
+                                                            
+                                                        </button>
                                                         </div>
-                                                    </div>
-                                                    <CardContent className="p-4 text-slate-800">
-                                                        <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
-                                                            {product.name}
-                                                        </h3>
-                                                        <div className="mb-3 flex items-center">
-                                                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                            <span className="ml-1 text-sm font-medium text-slate-700">
-                                                                {product.rating}
-                                                            </span>
+
+                                                       
+                                                                 </div>
+                                                                     <CardContent className="p-4 text-slate-800">
+                                                                      <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
+                                                                      {product.name}
+                                                                      </h3>
+                                                                     <div className="mb-3 flex items-center">
+                                                                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                                     <span className="ml-1 text-sm font-medium text-slate-700">
+                                                                        {product.rating}
+                                                                  </span>
                                                             <span className="ml-1 text-sm text-slate-500">
                                                                 (
                                                                 {
