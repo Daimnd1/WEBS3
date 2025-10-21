@@ -13,19 +13,47 @@ import {
     Headphones,
     Monitor,
     Search,
-    ShoppingCart,
     Smartphone,
     SortAsc,
     SortDesc,
     Star,
     Heart,
 } from 'lucide-react';
-import { useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 
 
 interface ProductsPageProps {
     category?: string;
 }
+
+// Define categories outside component to avoid recreation
+const CATEGORY_DEFINITIONS = [
+    {
+        id: 'all',
+        name: 'All Products',
+        icon: <Grid3X3 className="h-5 w-5" />,
+    },
+    {
+        id: 'laptops',
+        name: 'Laptops',
+        icon: <Monitor className="h-5 w-5" />,
+    },
+    {
+        id: 'smartphones',
+        name: 'Smartphones',
+        icon: <Smartphone className="h-5 w-5" />,
+    },
+    {
+        id: 'headphones',
+        name: 'Headphones',
+        icon: <Headphones className="h-5 w-5" />,
+    },
+    {
+        id: 'gaming',
+        name: 'Gaming',
+        icon: <GamepadIcon className="h-5 w-5" />,
+    },
+] as const;
 
 export default function Products({
     category: initialCategory,
@@ -39,42 +67,35 @@ export default function Products({
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const { isFav, toggle } = useFavorites();
 
+    // Memoize toggle to avoid creating new functions in render
+    const handleToggleFavorite = useCallback((e: React.MouseEvent, productId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggle(productId);
+    }, [toggle]);
 
-    // Categories with icons
-    const categories = [
-        {
-            id: 'all',
-            name: 'All Products',
-            icon: <Grid3X3 className="h-5 w-5" />,
-            count: allProducts.length,
-        },
-        {
-            id: 'laptops',
-            name: 'Laptops',
-            icon: <Monitor className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'laptops').length,
-        },
-        {
-            id: 'smartphones',
-            name: 'Smartphones',
-            icon: <Smartphone className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'smartphones')
-                .length,
-        },
-        {
-            id: 'headphones',
-            name: 'Headphones',
-            icon: <Headphones className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'headphones')
-                .length,
-        },
-        {
-            id: 'gaming',
-            name: 'Gaming',
-            icon: <GamepadIcon className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'gaming').length,
-        },
-    ];
+    // Calculate category counts efficiently - only once when products change
+    const categories = useMemo(() => {
+        const counts: Record<string, number> = {
+            all: allProducts.length,
+            laptops: 0,
+            smartphones: 0,
+            headphones: 0,
+            gaming: 0,
+        };
+
+        // Single pass through products to count all categories
+        allProducts.forEach((product) => {
+            if (counts[product.category] !== undefined) {
+                counts[product.category]++;
+            }
+        });
+
+        return CATEGORY_DEFINITIONS.map((cat) => ({
+            ...cat,
+            count: counts[cat.id] || 0,
+        }));
+    }, []);
 
     // Filter and sort products
     const filteredProducts = useMemo(() => {
@@ -167,7 +188,7 @@ export default function Products({
                 </section>
 
                 {/* Filters and Controls */}
-                <section className="border-b border-slate-200/50 bg-white/80 px-4 py-6 backdrop-blur-md">
+                <section className="border-b border-slate-200/50 bg-white px-4 py-6">
                     <div className="mx-auto max-w-7xl">
                         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
                             {/* Search */}
@@ -227,12 +248,12 @@ export default function Products({
                 </section>
 
                 {/* Main Content */}
-                <section className="bg-white/90 px-4 py-8 backdrop-blur-md">
+                <section className="bg-gray-50 px-4 py-8">
                     <div className="mx-auto max-w-7xl">
                         <div className="flex flex-col gap-8 lg:flex-row">
                             {/* Sidebar - Categories */}
                             <div className="flex-shrink-0 lg:w-64">
-                                <div className="top-24 rounded-lg border border-slate-200/50 bg-white/80 p-6 text-slate-700 shadow-sm backdrop-blur-sm">
+                                <div className="top-24 rounded-lg border border-slate-200 bg-white p-6 text-slate-700 shadow-sm">
                                     <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                                         <Filter className="h-5 w-5" />
                                         Categories
@@ -246,11 +267,11 @@ export default function Products({
                                                         category.id,
                                                     )
                                                 }
-                                                className={`flex w-full items-center justify-between rounded-lg p-3 text-left transition-all duration-300 ${
+                                                className={`flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors ${
                                                     selectedCategory ===
                                                     category.id
-                                                        ? 'border border-indigo-200/50 bg-indigo-50/80 text-indigo-700 backdrop-blur-sm'
-                                                        : 'hover:bg-white/60 hover:shadow-sm hover:backdrop-blur-sm'
+                                                        ? 'border border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                        : 'hover:bg-gray-50'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -287,78 +308,65 @@ export default function Products({
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                        {filteredProducts.map((product) => (
-                                            <Link
-                                                key={product.id}
-                                                href={`/product/${product.id}`}
-                                                className="block"
-                                            >
-                                                <Card
-                                                    className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                                        {filteredProducts.map((product) => {
+                                            const isFavorite = isFav(product.id);
+                                            return (
+                                                <Link
+                                                    key={product.id}
+                                                    href={`/product/${product.id}`}
+                                                    className="block"
                                                 >
-                                                    <div className="relative">
-                                                    
-                                                        <img
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            className="h-64 w-full rounded-xl bg-gray-50 object-cover"
-                                                        />
-                                                        <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.id); }}
-                                                            className="rounded-full bg-white/90 p-2 shadow hover:scale-110 transition"
-                                                            aria-label={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
-                                                            title={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
-                                                        >
-                                                            <Heart
-                                                            size={18}
-                                                            className={isFav(product.id) ? "text-red-600" : "text-slate-400"}
-                                                            fill={isFav(product.id) ? "currentColor" : "none"}
+                                                    <Card className="group border-slate-200 bg-white transition-shadow duration-150 hover:shadow-lg">
+                                                        <div className="relative">
+                                                            <img
+                                                                src={product.image}
+                                                                alt={product.name}
+                                                                className="h-64 w-full rounded-xl bg-gray-50 object-cover"
+                                                                loading="lazy"
                                                             />
-                                                            
-                                                        </button>
-                                                        </div>
-
-                                                       
-                                                                 </div>
-                                                                     <CardContent className="p-4 text-slate-800">
-                                                                      <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
-                                                                      {product.name}
-                                                                      </h3>
-                                                                     <div className="mb-3 flex items-center">
-                                                                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                                     <span className="ml-1 text-sm font-medium text-slate-700">
-                                                                        {product.rating}
-                                                                  </span>
-                                                            <span className="ml-1 text-sm text-slate-500">
-                                                                (
-                                                                {
-                                                                    product.reviews
-                                                                }
-                                                                )
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <div>
-                                                                <span className="text-xl font-bold text-indigo-600">
-                                                                    $
-                                                                    {
-                                                                        product.price
-                                                                    }
-                                                                </span>
-                                                                <span className="ml-2 text-sm text-gray-500 line-through">
-                                                                    $
-                                                                    {
-                                                                        product.originalPrice
-                                                                    }
-                                                                </span>
+                                                            <div className="absolute top-3 right-3 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => handleToggleFavorite(e, product.id)}
+                                                                    className="rounded-full bg-white p-2.5 shadow-lg hover:scale-105 transition-transform"
+                                                                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                                                                >
+                                                                    <Heart
+                                                                        size={18}
+                                                                        className={isFavorite ? "text-red-600" : "text-slate-400"}
+                                                                        fill={isFavorite ? "currentColor" : "none"}
+                                                                    />
+                                                                </button>
                                                             </div>
                                                         </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </Link>
-                                        ))}
+                                                        <CardContent className="p-4 text-slate-800">
+                                                            <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
+                                                                {product.name}
+                                                            </h3>
+                                                            <div className="mb-3 flex items-center">
+                                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                                <span className="ml-1 text-sm font-medium text-slate-700">
+                                                                    {product.rating}
+                                                                </span>
+                                                                <span className="ml-1 text-sm text-slate-500">
+                                                                    ({product.reviews})
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <span className="text-xl font-bold text-indigo-600">
+                                                                        ${product.price}
+                                                                    </span>
+                                                                    <span className="ml-2 text-sm text-gray-500 line-through">
+                                                                        ${product.originalPrice}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Link>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

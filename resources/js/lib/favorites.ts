@@ -1,8 +1,5 @@
-
-
 const KEY = "favorites:ids";
 const toKey = (id: string | number) => String(id);
-
 
 const safeGet = (k: string): string | null => {
   if (typeof window === "undefined") return null;

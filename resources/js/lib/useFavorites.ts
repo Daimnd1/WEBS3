@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   getFavoriteIds,
   toggleFavorite as _toggle,
@@ -26,7 +26,10 @@ export function useFavorites() {
     };
   }, []);
 
-  const isFav = useCallback((id: string | number) => ids.includes(String(id)), [ids]);
+  // Convert to Set for O(1) lookups instead of O(n)
+  const favSet = useMemo(() => new Set(ids), [ids]);
+
+  const isFav = useCallback((id: string | number) => favSet.has(String(id)), [favSet]);
 
   const toggle = useCallback((id: string | number) => _toggle(id), []);
   const add    = useCallback((id: string | number) => _add(id), []);

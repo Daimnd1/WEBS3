@@ -24,12 +24,6 @@ const navbar = () => {
                     <Package size={24} />
                 </Link>
                 <Link
-                    href={'/'}
-                    className="cursor-pointer rounded-lg p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700"
-                >
-                    <Star size={24} />
-                </Link>
-                <Link
                     href={'/cart'}
                     className="cursor-pointer rounded-lg p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700"
                 >

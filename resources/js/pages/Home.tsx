@@ -63,7 +63,7 @@ export default function Home() {
                                 <SwiperSlide key={product.id}>
                                     <div className="grid min-h-[450px] items-center gap-8 px-4 lg:grid-cols-2">
                                         {/* Left Side - Text Content */}
-                                        <div className="space-y-6 pl-12 lg:pl-16">
+                                        <div className="space-y-6 px-12 lg:px-16">
                                             <div className="space-y-3">
                                                 <Badge className="bg-amber-400 text-sm font-medium text-black hover:bg-amber-500">
                                                     {product.badge} •{' '}
@@ -194,7 +194,7 @@ export default function Home() {
                                         >
                                             <Card
                                                 key={product.id}
-                                                className="group min-w-[280px] border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg"
+                                                className="group min-w-[280px] border-slate-200/50 bg-white/80 transition-all duration-300 hover:shadow-lg"
                                             >
                                                 <div className="relative">
                                                     <img
@@ -202,7 +202,7 @@ export default function Home() {
                                                         alt={product.name}
                                                         className="h-64 w-full rounded-xl object-cover"
                                                     />
-                                                    <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                                                    <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 transition-opacity group-hover:opacity-100">
                                                         <ShoppingCart className="h-4 w-4 text-indigo-600" />
                                                     </div>
                                                 </div>
