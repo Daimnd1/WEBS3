@@ -13,19 +13,47 @@ import {
     Headphones,
     Monitor,
     Search,
-    ShoppingCart,
     Smartphone,
     SortAsc,
     SortDesc,
     Star,
     Heart,
 } from 'lucide-react';
-import { useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 
 
 interface ProductsPageProps {
     category?: string;
 }
+
+// Define categories outside component to avoid recreation
+const CATEGORY_DEFINITIONS = [
+    {
+        id: 'all',
+        name: 'All Products',
+        icon: <Grid3X3 className="h-5 w-5" />,
+    },
+    {
+        id: 'laptops',
+        name: 'Laptops',
+        icon: <Monitor className="h-5 w-5" />,
+    },
+    {
+        id: 'smartphones',
+        name: 'Smartphones',
+        icon: <Smartphone className="h-5 w-5" />,
+    },
+    {
+        id: 'headphones',
+        name: 'Headphones',
+        icon: <Headphones className="h-5 w-5" />,
+    },
+    {
+        id: 'gaming',
+        name: 'Gaming',
+        icon: <GamepadIcon className="h-5 w-5" />,
+    },
+] as const;
 
 export default function Products({
     category: initialCategory,
@@ -39,42 +67,35 @@ export default function Products({
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const { isFav, toggle } = useFavorites();
 
+    // Memoize toggle to avoid creating new functions in render
+    const handleToggleFavorite = useCallback((e: React.MouseEvent, productId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggle(productId);
+    }, [toggle]);
 
-    // Categories with icons
-    const categories = [
-        {
-            id: 'all',
-            name: 'All Products',
-            icon: <Grid3X3 className="h-5 w-5" />,
-            count: allProducts.length,
-        },
-        {
-            id: 'laptops',
-            name: 'Laptops',
-            icon: <Monitor className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'laptops').length,
-        },
-        {
-            id: 'smartphones',
-            name: 'Smartphones',
-            icon: <Smartphone className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'smartphones')
-                .length,
-        },
-        {
-            id: 'headphones',
-            name: 'Headphones',
-            icon: <Headphones className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'headphones')
-                .length,
-        },
-        {
-            id: 'gaming',
-            name: 'Gaming',
-            icon: <GamepadIcon className="h-5 w-5" />,
-            count: allProducts.filter((p) => p.category === 'gaming').length,
-        },
-    ];
+    // Calculate category counts efficiently - only once when products change
+    const categories = useMemo(() => {
+        const counts: Record<string, number> = {
+            all: allProducts.length,
+            laptops: 0,
+            smartphones: 0,
+            headphones: 0,
+            gaming: 0,
+        };
+
+        // Single pass through products to count all categories
+        allProducts.forEach((product) => {
+            if (counts[product.category] !== undefined) {
+                counts[product.category]++;
+            }
+        });
+
+        return CATEGORY_DEFINITIONS.map((cat) => ({
+            ...cat,
+            count: counts[cat.id] || 0,
+        }));
+    }, []);
 
     // Filter and sort products
     const filteredProducts = useMemo(() => {
@@ -147,18 +168,18 @@ export default function Products({
             <Head title={`${getCurrentCategoryName()} - Gimme Electronics`} />
             <AppLayout>
                 {/* Header Section */}
-                <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-4 pt-48 pb-8">
+                <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-3 sm:px-4 pt-20 sm:pt-32 md:pt-40 lg:pt-48 pb-6 sm:pb-8">
                     <div className="mx-auto max-w-7xl">
                         <div className="text-center text-white">
-                            <h1 className="mb-4 text-4xl font-bold md:text-5xl">
+                            <h1 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
                                 {getCurrentCategoryName()}
                             </h1>
-                            <p className="mb-6 text-lg text-blue-100 md:text-xl">
+                            <p className="mb-4 sm:mb-6 text-sm sm:text-base md:text-lg lg:text-xl text-blue-100">
                                 Discover amazing tech products at unbeatable
                                 prices
                             </p>
                             <div className="flex justify-center">
-                                <Badge className="bg-amber-400 px-4 py-2 text-sm text-black">
+                                <Badge className="bg-amber-400 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-black">
                                     {filteredProducts.length} Products Available
                                 </Badge>
                             </div>
@@ -167,12 +188,12 @@ export default function Products({
                 </section>
 
                 {/* Filters and Controls */}
-                <section className="border-b border-slate-200/50 bg-white/80 px-4 py-6 backdrop-blur-md">
+                <section className="border-b border-slate-200/50 bg-white px-3 sm:px-4 py-4 sm:py-6">
                     <div className="mx-auto max-w-7xl">
-                        <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+                        <div className="flex flex-col items-start justify-between gap-3 sm:gap-4 md:gap-6 lg:flex-row lg:items-center">
                             {/* Search */}
-                            <div className="relative max-w-md flex-1">
-                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                            <div className="relative w-full max-w-md flex-1">
+                                <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 transform text-gray-400" />
                                 <Input
                                     type="text"
                                     placeholder="Search products..."
@@ -180,15 +201,15 @@ export default function Products({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    className="border-slate-200/50 bg-white/60 pl-10 text-slate-700 backdrop-blur-sm transition-all focus:bg-white/80"
+                                    className="border-slate-200/50 bg-white/60 pl-9 sm:pl-10 text-sm sm:text-base text-slate-700 backdrop-blur-sm transition-all focus:bg-white/80"
                                 />
                             </div>
 
                             {/* Controls */}
-                            <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 w-full lg:w-auto">
                                 {/* Sort */}
-                                <div className="flex items-center gap-2">
-                                    <label className="text-sm font-medium text-gray-700">
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
                                         Sort by:
                                     </label>
                                     <select
@@ -196,7 +217,7 @@ export default function Products({
                                         onChange={(e) =>
                                             setSortBy(e.target.value)
                                         }
-                                        className="h-8 rounded-md bg-white/60 px-3 py-1 text-sm text-slate-700 focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        className="h-7 sm:h-8 rounded-md bg-white/60 px-2 sm:px-3 py-1 text-xs sm:text-sm text-slate-700 focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     >
                                         <option value="name">Name</option>
                                         <option value="price">Price</option>
@@ -206,6 +227,7 @@ export default function Products({
                                     <Button
                                         variant="outline"
                                         size="sm"
+                                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                                         onClick={() =>
                                             setSortOrder(
                                                 sortOrder === 'asc'
@@ -215,9 +237,9 @@ export default function Products({
                                         }
                                     >
                                         {sortOrder === 'asc' ? (
-                                            <SortAsc className="h-4 w-4" />
+                                            <SortAsc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                         ) : (
-                                            <SortDesc className="h-4 w-4" />
+                                            <SortDesc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                         )}
                                     </Button>
                                 </div>
@@ -227,17 +249,17 @@ export default function Products({
                 </section>
 
                 {/* Main Content */}
-                <section className="bg-white/90 px-4 py-8 backdrop-blur-md">
+                <section className="bg-gray-50 px-3 sm:px-4 py-4 sm:py-6 md:py-8">
                     <div className="mx-auto max-w-7xl">
-                        <div className="flex flex-col gap-8 lg:flex-row">
+                        <div className="flex flex-col gap-4 sm:gap-6 md:gap-8 lg:flex-row">
                             {/* Sidebar - Categories */}
                             <div className="flex-shrink-0 lg:w-64">
-                                <div className="top-24 rounded-lg border border-slate-200/50 bg-white/80 p-6 text-slate-700 shadow-sm backdrop-blur-sm">
-                                    <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                                <div className="top-24 rounded-lg border border-slate-200 bg-white p-4 sm:p-6 text-slate-700 shadow-sm">
+                                    <h3 className="mb-3 sm:mb-4 flex items-center gap-2 text-base sm:text-lg font-semibold">
                                         <Filter className="h-5 w-5" />
                                         Categories
                                     </h3>
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5 sm:space-y-2">
                                         {categories.map((category) => (
                                             <button
                                                 key={category.id}
@@ -246,22 +268,24 @@ export default function Products({
                                                         category.id,
                                                     )
                                                 }
-                                                className={`flex w-full items-center justify-between rounded-lg p-3 text-left transition-all duration-300 ${
+                                                className={`flex w-full items-center justify-between rounded-lg p-2 sm:p-3 text-left transition-colors ${
                                                     selectedCategory ===
                                                     category.id
-                                                        ? 'border border-indigo-200/50 bg-indigo-50/80 text-indigo-700 backdrop-blur-sm'
-                                                        : 'hover:bg-white/60 hover:shadow-sm hover:backdrop-blur-sm'
+                                                        ? 'border border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                        : 'hover:bg-gray-50'
                                                 }`}
                                             >
-                                                <div className="flex items-center gap-3">
-                                                    {category.icon}
-                                                    <span className="font-medium">
+                                                <div className="flex items-center gap-2 sm:gap-3">
+                                                    <div className="w-4 h-4 sm:w-5 sm:h-5">
+                                                        {category.icon}
+                                                    </div>
+                                                    <span className="text-sm sm:text-base font-medium">
                                                         {category.name}
                                                     </span>
                                                 </div>
                                                 <Badge
                                                     variant="secondary"
-                                                    className="text-xs"
+                                                    className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
                                                 >
                                                     {category.count}
                                                 </Badge>
@@ -274,91 +298,78 @@ export default function Products({
                             {/* Products Grid/List */}
                             <div className="flex-1">
                                 {filteredProducts.length === 0 ? (
-                                    <div className="py-12 text-center">
-                                        <div className="mb-4 text-gray-400">
-                                            <Search className="mx-auto h-16 w-16" />
+                                    <div className="py-8 sm:py-12 text-center">
+                                        <div className="mb-3 sm:mb-4 text-gray-400">
+                                            <Search className="mx-auto h-12 w-12 sm:h-16 sm:w-16" />
                                         </div>
-                                        <h3 className="mb-2 text-xl font-semibold text-gray-600">
+                                        <h3 className="mb-1.5 sm:mb-2 text-lg sm:text-xl font-semibold text-gray-600">
                                             No products found
                                         </h3>
-                                        <p className="text-gray-500">
+                                        <p className="text-sm sm:text-base text-gray-500">
                                             Try adjusting your search or filters
                                         </p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                        {filteredProducts.map((product) => (
-                                            <Link
-                                                key={product.id}
-                                                href={`/product/${product.id}`}
-                                                className="block"
-                                            >
-                                                <Card
-                                                    className="group border-slate-200/50 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                                    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-3 xl:grid-cols-4">
+                                        {filteredProducts.map((product) => {
+                                            const isFavorite = isFav(product.id);
+                                            return (
+                                                <Link
+                                                    key={product.id}
+                                                    href={`/product/${product.id}`}
+                                                    className="max-w-[255px]"
                                                 >
-                                                    <div className="relative">
-                                                    
-                                                        <img
-                                                            src={product.image}
-                                                            alt={product.name}
-                                                            className="h-64 w-full rounded-xl bg-gray-50 object-cover"
-                                                        />
-                                                        <div className="absolute top-3 right-3 rounded-full bg-white/90 p-2 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.id); }}
-                                                            className="rounded-full bg-white/90 p-2 shadow hover:scale-110 transition"
-                                                            aria-label={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
-                                                            title={isFav(product.id) ? "Remove from favorites" : "Add to favorites"}
-                                                        >
-                                                            <Heart
-                                                            size={18}
-                                                            className={isFav(product.id) ? "text-red-600" : "text-slate-400"}
-                                                            fill={isFav(product.id) ? "currentColor" : "none"}
+                                                    <Card className="group border-slate-200 bg-white transition-shadow duration-150 hover:shadow-lg">
+                                                        <div className="relative">
+                                                            <img
+                                                                src={product.image}
+                                                                alt={product.name}
+                                                                className="h-64 max-h-64 w-full rounded-xl bg-gray-50 object-cover"
+                                                                loading="lazy"
                                                             />
-                                                            
-                                                        </button>
-                                                        </div>
-
-                                                       
-                                                                 </div>
-                                                                     <CardContent className="p-4 text-slate-800">
-                                                                      <h3 className="mb-2 line-clamp-1 text-lg font-semibold text-slate-900">
-                                                                      {product.name}
-                                                                      </h3>
-                                                                     <div className="mb-3 flex items-center">
-                                                                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                                     <span className="ml-1 text-sm font-medium text-slate-700">
-                                                                        {product.rating}
-                                                                  </span>
-                                                            <span className="ml-1 text-sm text-slate-500">
-                                                                (
-                                                                {
-                                                                    product.reviews
-                                                                }
-                                                                )
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center justify-between">
-                                                            <div>
-                                                                <span className="text-xl font-bold text-indigo-600">
-                                                                    $
-                                                                    {
-                                                                        product.price
-                                                                    }
-                                                                </span>
-                                                                <span className="ml-2 text-sm text-gray-500 line-through">
-                                                                    $
-                                                                    {
-                                                                        product.originalPrice
-                                                                    }
-                                                                </span>
+                                                            <div className="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => handleToggleFavorite(e, product.id)}
+                                                                    className="rounded-full bg-white p-2 sm:p-2.5 shadow-lg hover:scale-105 transition-transform"
+                                                                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                                                                >
+                                                                    <Heart
+                                                                        size={16}
+                                                                        className={`sm:w-[18px] sm:h-[18px] ${isFavorite ? "text-red-600" : "text-slate-400"}`}
+                                                                        fill={isFavorite ? "currentColor" : "none"}
+                                                                    />
+                                                                </button>
                                                             </div>
                                                         </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </Link>
-                                        ))}
+                                                        <CardContent className="p-3 sm:p-4 text-slate-800">
+                                                            <h3 className="mb-1.5 sm:mb-2 line-clamp-1 text-base sm:text-lg font-semibold text-slate-900">
+                                                                {product.name}
+                                                            </h3>
+                                                            <div className="mb-2 sm:mb-3 flex items-center">
+                                                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                                                                <span className="ml-1 text-xs sm:text-sm font-medium text-slate-700">
+                                                                    {product.rating}
+                                                                </span>
+                                                                <span className="ml-1 text-xs sm:text-sm text-slate-500">
+                                                                    ({product.reviews})
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <div>
+                                                                    <span className="text-lg sm:text-xl font-bold text-indigo-600">
+                                                                        ${product.price}
+                                                                    </span>
+                                                                    <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                                                                        ${product.originalPrice}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Link>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
