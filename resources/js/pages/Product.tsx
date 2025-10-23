@@ -2,7 +2,6 @@ import { allProducts } from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Star } from 'lucide-react';
 
-
 interface ProductPageProps {
     productId: number;
 }
@@ -25,105 +24,89 @@ export default function ProductPage({ productId }: ProductPageProps) {
                 <title>{product.name}</title>
             </head>
 
-            <main className="min-h-screen bg-white p-4 md:p-8 lg:p-12">
-                <article className="grid grid-cols-1 gap-6 rounded-xl bg-white/80 p-6 pt-10 pb-50 text-black shadow-2xl lg:grid-cols-4">
-                    <section className="space-y-4 lg:col-span-2">
-                        <header className="mb-4 bg-white/80 pt-10">
-                            <h1 className="text-3xl font-bold text-black">
-                                {product.name}
-                            </h1>
-                        </header>
-                        <figure>
-                            <img
-                                src={product.image}
-                                alt={'${product.name} main image'}
-                                className="h-full w-full rounded-lg object-cover"
-                            />
-                        </figure>
+            <section className="grid justify-center bg-slate-100 p-4 md:p-8 lg:p-12">
+                <article className="mt-16 grid h-fit max-w-3xl rounded-xl bg-slate-50 p-6 pb-12 text-black shadow-2xl lg:max-w-6xl lg:grid-cols-2">
+                    <section>
+                        <img
+                            src={product.image}
+                            alt={`${product.name} main image`}
+                            className="h-full w-full rounded-lg object-contain"
+                        />
                     </section>
-
-                    <section className="grid grid-cols-2 grid-rows-1 gap-6 pt-22 lg:col-span-2">
-                        {/* Price & rating */}
-                        <div className="col-span-2 row-span-1 rounded-lg p-4 text-black shadow-md">
-                            <h2 className="mb-2 text-xl font-semibold">
-                                Price & Rating
-                            </h2>
-                            <div className="flex flex-col items-start justify-between md:flex-row md:items-center">
-                                <div className="mb-2 flex items-center space-x-3 md:mb-0">
-                                    <span className="text-2xl font-bold text-indigo-600">
-                                        ${product.price.toFixed(2)}
-                                    </span>
-                                    <span className="text-base text-gray-500 line-through">
-                                        ${product.originalPrice}
-                                    </span>
-                                </div>
-                                <div className="flex items-center space-x-2 text-xl text-gray-700">
-                                    <span className="font-medium">
-                                        {product.rating}
-                                    </span>
-                                    <Star className="col-span-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                    <span>|</span>
-                                    <span>Reviews: {product.reviews}</span>
-                                </div>
+                    <section className="grid content-center">
+                        <h1 className="md: text-3xl text-slate-800">
+                            {product.name}
+                        </h1>
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="relative mt-2 flex items-center gap-2">
+                                <span className="text-3xl font-bold text-indigo-600">
+                                    ${product.price.toFixed(2)}
+                                </span>
+                                <span className="text-base text-gray-500 line-through">
+                                    ${product.originalPrice}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <span className="font-bold text-slate-600">
+                                    {product.rating}
+                                </span>
+                                <Star className="col-span-2 h-5 w-5 fill-amber-400 text-amber-400" />
                             </div>
                         </div>
+                        <div className="mt-1 text-base text-slate-500">
+                            <span>Reviews: {product.reviews}</span>
+                        </div>
 
-                        <section className="col-span-full space-y-4 md:col-span-1">
-                            <div className="rounded-lg p-2 shadow-inner">
-                                <h2 className="mb-2 w-100 text-xl font-semibold">
-                                    Short description
-                                </h2>
-                                <p className="text-l mb-2 w-100">
-                                    placeholder.
-                                </p>
-                            </div>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-700">
+                            Specifications
+                        </h2>
+                        <ul className="mt-1 grid gap-1 rounded-lg text-slate-600">
+                            {[
+                                'Placeholder1',
+                                'Placeholder2',
+                                'Placeholder3',
+                                'Placeholder4',
+                                'Placeholder5',
+                                'Placeholder6',
+                            ].map((item) => (
+                                <li
+                                    className="border-b border-slate-200 pb-1 last:border-b-0"
+                                    key={item}
+                                >
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
 
-                            {/* Specifications */}
-                            <div className="rounded-lg p-2 shadow-inner">
-                                <h2 className="mb-2 text-xl font-semibold">
-                                    Specifications
-                                </h2>
-                                <dl>
-                                    <dt>!Placeholder1!</dt>
-                                    <dt>!Placeholder2!</dt>
-                                    <dt>!Placeholder3!</dt>
-                                </dl>
-                            </div>
-                        </section>
-
-                        {/* Purchase Actions */}
-                        <section className="col-span-2 rounded-lg bg-white p-4 shadow-inner md:col-span-1">
-                            <h2 className="mb-2 text-xl font-semibold">
+                        <div className="mt-6">
+                            <h2 className="mb-2 text-xl font-semibold text-slate-700">
                                 Purchase options
                             </h2>
-                            <div className="text-l">
-                                <label htmlFor="quantity">Quantity:</label>
-                                <input
-                                    type="number"
-                                    id="quantity"
-                                    name="quantity"
-                                    min="1"
-                                    max="10"
-                                    defaultValue="1"
-                                />
-                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="quantity">Quantity</label>
+                                    <input
+                                        className="rounded-md border-2 border-slate-200 px-2 py-1 transition-colors duration-300 hover:border-indigo-400"
+                                        type="number"
+                                        id="quantity"
+                                        name="quantity"
+                                        min="1"
+                                        max="10"
+                                        defaultValue="1"
+                                    />
+                                </div>
 
-                            <button
-                                type="button"
-                                className="mb-2 w-full bg-indigo-600 text-white hover:bg-indigo-500"
-                            >
-                                Add to Cart
-                            </button>
-                            <button
-                                type="button"
-                                className="mb-2 w-full bg-indigo-600 text-white hover:bg-indigo-500"
-                            >
-                                Add to Favorites
-                            </button>
-                        </section>
+                                <button
+                                    type="button"
+                                    className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
+                                >
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
                     </section>
                 </article>
-            </main>
+            </section>
         </AppLayout>
     );
 }
