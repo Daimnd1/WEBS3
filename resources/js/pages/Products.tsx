@@ -254,7 +254,7 @@ export default function Products({
                         <div className="flex flex-col gap-4 sm:gap-6 md:gap-8 lg:flex-row">
                             {/* Sidebar - Categories */}
                             <div className="flex-shrink-0 lg:w-64">
-                                <div className="top-24 rounded-lg border border-slate-200 bg-white p-4 sm:p-6 text-slate-700 shadow-sm">
+                                <div className="top-24 rounded-xl border border-slate-200 bg-white p-4 sm:p-6 text-slate-700 shadow-sm">
                                     <h3 className="mb-3 sm:mb-4 flex items-center gap-2 text-base sm:text-lg font-semibold">
                                         <Filter className="h-5 w-5" />
                                         Categories
@@ -268,7 +268,7 @@ export default function Products({
                                                         category.id,
                                                     )
                                                 }
-                                                className={`flex w-full items-center justify-between rounded-lg p-2 sm:p-3 text-left transition-colors ${
+                                                className={`flex w-full items-center justify-between rounded-xl p-2 sm:p-3 text-left transition-colors ${
                                                     selectedCategory ===
                                                     category.id
                                                         ? 'border border-indigo-200 bg-indigo-50 text-indigo-700'
