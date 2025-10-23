@@ -15,6 +15,13 @@ Route::get('/products', function () {
     ]);
 })->name('products');
 
+Route::get('/product/{id}', function ($id) {
+    // $id = request('id');
+    return Inertia::render('Product', [
+        'productId' => $id
+    ]);
+})->name('product.show');
+
 Route::get('/login', function () {
     return Inertia::render('loginpage');
 })->name('loginpage');
