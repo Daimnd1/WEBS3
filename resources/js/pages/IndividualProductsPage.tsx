@@ -54,7 +54,9 @@ export default function ProductPage({ productId }: ProductPageProps) {
                             </div>
                         </div>
                         <div className="mt-1 text-base text-slate-500">
-                            <span>Reviews: {product.reviews}</span>
+                            <span className='hover:underline hover:text-indigo-600'> 
+                                <a href=''>Reviews: {product.reviews}</a>
+                            </span>
                         </div>
 
                         <h2 className="mt-2 text-xl font-semibold text-slate-700">
@@ -102,11 +104,48 @@ export default function ProductPage({ productId }: ProductPageProps) {
                                 >
                                     Add to Cart
                                 </button>
+                                
+                            </div>
+
+                            <div className="flex items-center gap-4 mt-4"> 
+                                <button
+                                    type="button"
+                                    className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
+                                >
+                                    Add review
+                                </button>
+                            
+                                <button
+                                    type="button"
+                                    className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
+                                >
+                                    Add to Favorites
+                                </button>
                             </div>
                         </div>
                     </section>
+                    <article className='col-span-full'>
+                        <h2 className="mt-2 text-2xl font-semibold text-slate-700">
+                            Description/ Product overview
+                        </h2>
+                        <p className='col-span-full'>
+                            Placeholder text: The old lighthouse keeper, Elias, watched the churning 
+                            expanse of the Atlantic as it swallowed the last sliver of the setting sun. 
+                            For forty years, the rhythm of the waves and the dependable swing of the lamp had 
+                            been the only constants in his life, a silent, comforting counterpoint to the distant 
+                            clamor of the mainland. He often pondered the countless ships his beam had guided, vessels 
+                            carrying stories, cargo, and hopes he would never know, yet felt intrinsically linked to. 
+                            Tonight, however, the air held a strange, brittle silence, an unnatural pause before an 
+                            impending storm. He checked the brass mechanism one last time, the gears humming with meticulous 
+                            precision. Outside, a lone gull cried out, its voice thin against the sudden whip of the rising wind. 
+                            Elias pulled his heavy woolen cardigan tighter, his thoughts drifting to a faded photograph tucked 
+                            into his breast pocket—a reminder of a life he had chosen to leave behind for the solitary, yet profound, 
+                            duty of the beacon. The rain began, tapping a rapid, urgent beat against the thick glass of the lantern room, 
+                            signaling the start of another long, vigilant night.</p>
+                    </article>
                 </article>
             </section>
+            
         </AppLayout>
     );
 }
