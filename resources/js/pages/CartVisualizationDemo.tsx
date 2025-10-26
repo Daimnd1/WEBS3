@@ -1,48 +1,48 @@
-﻿import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
+﻿import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
+import { allProducts } from '@/data/products/products';
+import { useState } from 'react';
 
-export default function CartVisualisationDemo(): React.ReactElement {
-  const [items, setItems] = useState([
-    { id: 1, name: 'Wireless Mechanical Keyboard', price: 120, quantity: 1 },
-    { id: 2, name: 'Wireless Mouse', price: 39, quantity: 2 },
+interface ProductPageProps {
+    productId?: number;
+}
+
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+}
+
+export default function CartVisualisationDemo({productId} : ProductPageProps) {
+  const prod1 = allProducts.find(p => p.id === 101); 
+  const prod2 = allProducts.find(p => p.id === 301); 
+  
+  const [items, setItems] = useState<CartItem[]>([
+    { id: prod1!.id, name: prod1!.name, price: prod1!.price, image: prod1!.image, quantity: 1 },
+    { id: prod2!.id, name: prod2!.name, price: prod2!.price, image: prod2!.image, quantity: 2 },
   ]);
-
-  // Derived totals
-  const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
-  const subtotal = items.reduce((acc, it) => acc + it.quantity * it.price, 0);
-  const total = subtotal; 
-
-  // Handlers
-  const inc = (id: number) => {
-    setItems(prev =>
-      prev.map(it => (it.id === id ? { ...it, quantity: it.quantity + 1 } : it))
-    );
-  };
-
-  const dec = (id: number) => {
-    setItems(prev =>
-      prev.map(it =>
-        it.id === id ? { ...it, quantity: Math.max(1, it.quantity - 1) } : it
-      )
-    );
-  };
-
-  const remove = (id: number) => {
-    setItems(prev => prev.filter(it => it.id !== id));
-  };
-
-  useEffect(() => {
-    document.body.style.backgroundColor = '#f1f5f9';
-    document.documentElement.style.backgroundColor = '#f1f5f9';
-    return () => {
-      document.body.style.backgroundColor = '';
-      document.documentElement.style.backgroundColor = '';
-    };
-  }, []);
+  
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = subtotal;
+  
+  function increaseQty(id: number) {
+    setItems(items.map(item => 
+item.id === id ? {...item, quantity: item.quantity + 1 } : item));
+  }
+  
+  function decreaseQty(id: number) {
+    setItems(items.map(item => item.id === id && item.quantity > 1 ? {...item, quantity: item.quantity - 1 } : item));
+  }
+  
+  function removeItem(id: number) {
+    setItems(items.filter(item => item.id !== id));
+  }
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <header className="flex items-center p-6 text-slate-900 bg-white rounded-2xl shadow-lg mx-4 mt-4 mb-10">
+      <header className="flex items-center p-6 text-slate-900 bg-slate-50 rounded-xl shadow-lg mx-4 mt- mb-10">
         <nav aria-label="Back" className="flex items-center gap-2">
           <button
             type="button"
@@ -87,72 +87,80 @@ export default function CartVisualisationDemo(): React.ReactElement {
             Cart Items
           </h2>
 
-          {items.map(item => (
-            <article key={item.id} className="flex p-6 text-slate-900 bg-white rounded-2xl shadow-lg">
-              <div className="flex items-start gap-4 w-full">
-                <figure className="w-20 h-20 rounded-md bg-indigo-600 text-white flex items-center justify-center overflow-hidden">
-                  <img
-                    src="https://placehold.co/80x80/94A3B8/ffffff?text=IMG"
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </figure>
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-slate-500 bg-white rounded-xl shadow-lg">
+              <ShoppingCart size={48} className="mb-4 opacity-30" />
+              <p className="text-xl font-medium">Your cart is empty</p>
+              <p className="text-sm mt-2">Add some products to get started</p>
+            </div>
+          ) : (
+            items.map(item => (
+              <article key={item.id} className="flex p-6 text-slate-900 bg-white rounded-xl shadow-lg">
+                <div className="flex items-start gap-4 w-full">
+                  <figure className="w-20 h-20 rounded-md bg-slate-100 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-contain p-2"
+                    />
+                  </figure>
 
-                <header className="flex flex-col gap-3">
-                  <h3 className="text-2xl font-semibold leading-tight">{item.name}</h3>
-                  <p className="text-sm text-slate-500">SKU: product-{item.id}</p>
-                  <div className="flex items-center gap-3">
-                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
-                      In Stock
-                    </span>
-                    <span className="text-sm text-slate-500">SHIPS WITHIN 24H</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 rounded-full px-4 py-2 w-max">
-                    <ShoppingCart size={16} className="opacity-70" />
-                    <span className="text-sm font-medium">${item.price.toFixed(2)} each</span>
-                  </div>
-                </header>
-
-                <aside className="relative flex flex-col justify-between items-end ml-auto self-stretch">
-                  <button
-                    aria-label="Remove item"
-                    onClick={() => remove(item.id)}
-                    className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 p-2"
-                  >
-                    <X size={18} />
-                  </button>
-                  <div className="flex items-center gap-6 mt-auto pt-6">
-                    <div className="flex items-center rounded-xl border bg-white px-3 py-2 shadow-sm">
-                      <button
-                        aria-label="Decrease quantity"
-                        onClick={() => dec(item.id)}
-                        disabled={item.quantity <= 1}
-                        className="px-2 py-1 text-slate-500 hover:text-slate-700 disabled:opacity-40"
-                      >
-                        −
-                      </button>
-                      <span className="px-4 text-slate-900 tabular-nums">{item.quantity}</span>
-                      <button
-                        aria-label="Increase quantity"
-                        onClick={() => inc(item.id)}
-                        className="px-2 py-1 text-slate-500 hover:text-slate-700"
-                      >
-                        ＋
-                      </button>
+                  <header className="flex flex-col gap-3">
+                    <h3 className="text-2xl font-semibold leading-tight">{item.name}</h3>
+                    <p className="text-sm text-slate-500">SKU: product-{item.id}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
+                        In Stock
+                      </span>
+                      <span className="text-sm text-slate-500">SHIPS WITHIN 24H</span>
                     </div>
-                    <footer className="text-right">
-                      <p className="text-2xl font-bold">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-xs text-slate-500 tracking-wide">ITEM TOTAL</p>
-                    </footer>
-                  </div>
-                </aside>
-              </div>
-            </article>
-          ))}
+                    <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 rounded-full px-4 py-2 w-max">
+                      <ShoppingCart size={16} className="opacity-70" />
+                      <span className="text-sm font-medium">${item.price.toFixed(2)} each</span>
+                    </div>
+                  </header>
+
+                  <aside className="relative flex flex-col justify-between items-end ml-auto self-stretch">
+                    <button
+                      aria-label="Remove item"
+                      onClick={() => removeItem(item.id)}
+                      className="absolute top-0 right-0 text-slate-400 hover:text-slate-600 p-2"
+                    >
+                      <X size={18} />
+                    </button>
+                    <div className="flex items-center gap-6 mt-auto pt-6">
+                      <div className="flex items-center rounded-xl border bg-white px-3 py-2 shadow-sm">
+                        <button
+                          aria-label="Decrease quantity"
+                          onClick={() => decreaseQty(item.id)}
+                          disabled={item.quantity <= 1}
+                          className="px-2 py-1 text-slate-500 hover:text-slate-700 disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <span className="px-4 text-slate-900 tabular-nums">{item.quantity}</span>
+                        <button
+                          aria-label="Increase quantity"
+                          onClick={() => increaseQty(item.id)}
+                          className="px-2 py-1 text-slate-500 hover:text-slate-700"
+                        >
+                          ＋
+                        </button>
+                      </div>
+                      <footer className="text-right">
+                        <p className="text-2xl font-bold">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-xs text-slate-500 tracking-wide">ITEM TOTAL</p>
+                      </footer>
+                    </div>
+                  </aside>
+                </div>
+              </article>
+            ))
+          )}
         </section>
 
        
-        <aside aria-labelledby="order-summary-title" className="bg-white rounded-3xl shadow-lg p-6 h-max sticky top-6">
+        <aside aria-labelledby="order-summary-title" className="bg-white rounded-xl shadow-lg p-6 h-max sticky top-6">
           <h2 id="order-summary-title" className="text-2xl font-semibold text-slate-900">
             Order Summary
           </h2>
@@ -183,7 +191,8 @@ export default function CartVisualisationDemo(): React.ReactElement {
 
           <button
             type="button"
-            className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-2xl py-3 font-medium text-white bg-slate-800 hover:bg-slate-600 transition-shadow shadow-md"
+            disabled={items.length === 0}
+            className="relative overflow-hidden isolate mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 font-medium text-white bg-slate-800 transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-slate-600 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Proceed to Checkout"
           >
             <CreditCard size={18} />
