@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-
+// Public routes
 Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
@@ -16,15 +20,10 @@ Route::get('/products', function () {
 })->name('products');
 
 Route::get('/product/{id}', function ($id) {
-    // $id = request('id');
     return Inertia::render('Product', [
         'productId' => $id
     ]);
 })->name('product.show');
-
-Route::get('/login', function () {
-    return Inertia::render('loginpage');
-})->name('loginpage');
 
 Route::get('/cart', function () {
     return Inertia::render('CartVisualizationDemo');
@@ -36,3 +35,31 @@ Route::get('/favorites', function () {
 
 
 
+// Dashboard - protected route
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Profile routes - protected
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Authentication routes
+require __DIR__.'/auth.php';
+// Dashboard - protected route
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Profile routes - protected
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Authentication routes
+require __DIR__.'/auth.php';
