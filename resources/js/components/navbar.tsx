@@ -1,8 +1,10 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Package, ShoppingCart, Star, UserCircle, Heart } from 'lucide-react';
 import { useFavorites } from "@/lib/useFavorites";
+
 const navbar = () => {
     const { ids } = useFavorites();
+    const { auth } = usePage().props as { auth: { user: any } };
     return (
         <nav className="fixed top-0 z-50 flex h-14 sm:h-16 md:h-20 lg:h-24 w-screen flex-row items-center justify-between bg-gradient-to-b from-white/60 to-white/30 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-sm">
             <Link href="/">
@@ -31,9 +33,9 @@ const navbar = () => {
                     <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
                 </Link>
                 <Link
-                    href={'/login'}
+                    href={auth.user ? '/profile' : '/login'}
                     className="cursor-pointer rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50"
-                    title="Account"
+                    title={auth.user ? 'Profile' : 'Login'}
                 >
                     <UserCircle size={20} className="sm:w-6 sm:h-6" />
                 </Link>
