@@ -18,7 +18,7 @@ Route::get('/products', function () {
 })->name('products');
 
 Route::get('/product/{id}', function ($id) {
-    return Inertia::render('Product', [
+    return Inertia::render('IndividualProductsPage', [
         'productId' => $id
     ]);
 })->name('product.show');
