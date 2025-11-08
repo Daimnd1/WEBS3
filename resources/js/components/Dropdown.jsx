@@ -72,12 +72,7 @@ const Content = ({
                     className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
                     onClick={() => setOpen(false)}
                 >
-                    <div
-                        className={
-                            `rounded-md ring-1 ring-black ring-opacity-5 ` +
-                            contentClasses
-                        }
-                    >
+                    <div className={`rounded-xl px-1 py-1 ` + contentClasses}>
                         {children}
                     </div>
                 </div>
@@ -91,7 +86,7 @@ const DropdownLink = ({ className = '', children, ...props }) => {
         <Link
             {...props}
             className={
-                'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ' +
+                'block w-full rounded-lg px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-200 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none' +
                 className
             }
         >
