@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,6 +33,9 @@ Route::get('/favorites', function () {
 })->name('favorites');
 
 
+
+// Checkout route
+Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('auth')->name('checkout');
 
 // Profile routes - protected
 Route::middleware('auth')->group(function () {

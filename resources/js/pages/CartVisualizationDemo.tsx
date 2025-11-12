@@ -1,6 +1,7 @@
 ﻿import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
 import { allProducts } from '@/data/products/products';
 import { useState } from 'react';
+import { usePage } from '@inertiajs/react';
 
 interface ProductPageProps {
     productId?: number;
@@ -15,6 +16,7 @@ interface CartItem {
 }
 
 export default function CartVisualisationDemo({productId} : ProductPageProps) {
+  const { auth } = usePage().props as any;
   const prod1 = allProducts.find(p => p.id === 101); 
   const prod2 = allProducts.find(p => p.id === 301); 
   
@@ -22,6 +24,10 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
     { id: prod1!.id, name: prod1!.name, price: prod1!.price, image: prod1!.image, quantity: 1 },
     { id: prod2!.id, name: prod2!.name, price: prod2!.price, image: prod2!.image, quantity: 2 },
   ]);
+
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -31,13 +37,74 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
     setItems(items.map(item => 
 item.id === id ? {...item, quantity: item.quantity + 1 } : item));
   }
-  
+
   function decreaseQty(id: number) {
     setItems(items.map(item => item.id === id && item.quantity > 1 ? {...item, quantity: item.quantity - 1 } : item));
   }
   
   function removeItem(id: number) {
     setItems(items.filter(item => item.id !== id));
+  }
+
+  async function handleCheckout() {
+    if (!auth?.user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (items.length === 0) {
+      setCheckoutError('Your cart is empty');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    setCheckoutError('');
+    setCheckoutSuccess(false);
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+
+      const response = await fetch('/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shipping_address: null,
+        }),
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Checkout failed');
+      }
+
+      setCheckoutSuccess(true);
+      setItems([]);
+      console.log('Order created:', data.order_id);
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
+    } finally {
+      setIsCheckingOut(false);
+    }
   }
 
   return (
@@ -189,14 +256,27 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
             <span className="text-2xl font-bold text-slate-900 tabular-nums">${total.toFixed(2)}</span>
           </div>
 
+          {checkoutError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {checkoutError}
+            </div>
+          )}
+
+          {checkoutSuccess && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              Order created successfully! Redirecting...
+            </div>
+          )}
+
           <button
             type="button"
-            disabled={items.length === 0}
+            disabled={items.length === 0 || isCheckingOut}
+            onClick={handleCheckout}
             className="relative overflow-hidden isolate mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 font-medium text-white bg-slate-800 transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-slate-600 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Proceed to Checkout"
           >
             <CreditCard size={18} />
-            Proceed to Checkout
+            {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
           </button>
 
           <p className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
