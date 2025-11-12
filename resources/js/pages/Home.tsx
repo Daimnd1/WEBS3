@@ -1,8 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import featuredProducts from '@/data/products/featured-products';
-import categories from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { ChevronRight, Heart, ShoppingCart, Star } from 'lucide-react';
@@ -12,8 +10,15 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Autoplay, Mousewheel, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Category, FeaturedProduct } from '@/types';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
-export default function Home() {
+interface HomeProps {
+    categories: Category[];
+    featuredProducts: FeaturedProduct[];
+}
+
+export default function Home({ categories, featuredProducts }: HomeProps) {
     return (
         <>
             <Head title="Gimme Electronics - Your Tech Store" />
@@ -198,14 +203,15 @@ export default function Home() {
                                                 key={product.id}
                                                 className="group min-w-[220px] sm:min-w-[260px] md:min-w-[280px] border-slate-200/50 bg-white/80 transition-all duration-300 hover:shadow-lg"
                                             >
-                                                <div className="relative">
+                                                <div className="relative aspect-square overflow-hidden rounded-lg bg-slate-100">
                                                     <img
                                                         src={product.image}
                                                         alt={product.name}
-                                                        className="h-48 sm:h-56 md:h-64 w-full rounded-xl object-cover"
+                                                        className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
                                                     />
-                                                    <div className="absolute top-2 sm:top-3 right-2 sm:right-3 rounded-full bg-white/90 p-1.5 sm:p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-600" />
+                                                    {/* Add this favorite button */}
+                                                    <div className="absolute right-2 top-2">
+                                                        <FavoriteButton productId={product.id} />
                                                     </div>
                                                 </div>
                                                 <CardContent className="p-3 sm:p-4 text-slate-800">
