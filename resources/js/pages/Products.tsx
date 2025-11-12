@@ -2,124 +2,121 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { allProducts} from '@/data/products/products';
+import { FavoriteButton } from '@/components/FavoriteButton';
+import { getCategoryIcon } from '@/lib/categoryIcons';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
-import { useFavorites } from '@/lib/useFavorites'
 import {
     Filter,
-    GamepadIcon,
     Grid3X3,
-    Headphones,
-    Monitor,
     Search,
-    Smartphone,
     SortAsc,
     SortDesc,
     Star,
-    Heart,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, useCallback, memo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    originalPrice: number;
+    image: string;
+    rating: number;
+    reviews: number;
+    category: string;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+    productCount: number;
+}
 
 interface ProductsPageProps {
     category?: string;
+    products: Product[];
+    categories: Category[];
 }
 
-// Define categories outside component to avoid recreation
-const CATEGORY_DEFINITIONS = [
-    {
-        id: 'all',
-        name: 'All Products',
-        icon: <Grid3X3 className="h-5 w-5" />,
-    },
-    {
-        id: 'laptops',
-        name: 'Laptops',
-        icon: <Monitor className="h-5 w-5" />,
-    },
-    {
-        id: 'smartphones',
-        name: 'Smartphones',
-        icon: <Smartphone className="h-5 w-5" />,
-    },
-    {
-        id: 'headphones',
-        name: 'Headphones',
-        icon: <Headphones className="h-5 w-5" />,
-    },
-    {
-        id: 'gaming',
-        name: 'Gaming',
-        icon: <GamepadIcon className="h-5 w-5" />,
-    },
-] as const;
-
-export default function Products({
-    category: initialCategory,
+export default function Products({ 
+    category: initialCategory, 
+    products: allProducts,
+    categories: dbCategories 
 }: ProductsPageProps) {
-    // State management
-    const [selectedCategory, setSelectedCategory] = useState<string>(
-        initialCategory || 'all',
-    );
+    const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-    const { isFav, toggle } = useFavorites();
 
-    // Memoize toggle to avoid creating new functions in render
-    const handleToggleFavorite = useCallback((e: React.MouseEvent, productId: number) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggle(productId);
-    }, [toggle]);
+    useEffect(() => {
+        if (initialCategory) {
+            setSelectedCategory(initialCategory);
+        }
+    }, [initialCategory]);
 
-    // Calculate category counts efficiently - only once when products change
+    // Build categories with icons and counts
     const categories = useMemo(() => {
+        // Count products per category from actual products
         const counts: Record<string, number> = {
             all: allProducts.length,
-            laptops: 0,
-            smartphones: 0,
-            headphones: 0,
-            gaming: 0,
         };
 
-        // Single pass through products to count all categories
         allProducts.forEach((product) => {
-            if (counts[product.category] !== undefined) {
-                counts[product.category]++;
-            }
+            const slug = product.category;
+            counts[slug] = (counts[slug] || 0) + 1;
         });
 
-        return CATEGORY_DEFINITIONS.map((cat) => ({
-            ...cat,
-            count: counts[cat.id] || 0,
-        }));
-    }, []);
+        // Start with "All Products"
+        const categoryList = [
+            {
+                id: 'all',
+                name: 'All Products',
+                slug: 'all',
+                icon: <Grid3X3 className="h-5 w-5" />,
+                count: counts.all,
+            },
+        ];
 
-    // Filter and sort products
+        // Add database categories with icons
+        dbCategories.forEach((cat) => {
+            categoryList.push({
+                id: cat.slug,
+                name: cat.name,
+                slug: cat.slug,
+                icon: getCategoryIcon(cat.name),
+                count: counts[cat.slug] || 0,
+            });
+        });
+
+        return categoryList;
+    }, [allProducts, dbCategories]);
+
     const filteredProducts = useMemo(() => {
         let filtered = allProducts;
 
         // Filter by category
         if (selectedCategory !== 'all') {
-            filtered = filtered.filter(
-                (product) => product.category === selectedCategory,
-            );
+            filtered = filtered.filter((product) => product.category === selectedCategory);
         }
 
         // Filter by search query
         if (searchQuery) {
             filtered = filtered.filter((product) =>
-                product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                product.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
         // Sort products
-        filtered.sort((a, b) => {
+        filtered = [...filtered].sort((a, b) => {
             let aValue: string | number, bValue: string | number;
 
             switch (sortBy) {
+                case 'name':
+                    aValue = a.name.toLowerCase();
+                    bValue = b.name.toLowerCase();
+                    break;
                 case 'price':
                     aValue = a.price;
                     bValue = b.price;
@@ -133,23 +130,20 @@ export default function Products({
                     bValue = b.reviews;
                     break;
                 default:
-                    aValue = a.name.toLowerCase();
-                    bValue = b.name.toLowerCase();
+                    return 0;
             }
 
-            if (sortOrder === 'asc') {
-                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-            } else {
-                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-            }
+            if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
         });
 
         return filtered;
-    }, [selectedCategory, searchQuery, sortBy, sortOrder]);
+    }, [allProducts, selectedCategory, searchQuery, sortBy, sortOrder]);
 
-    // Update URL when category changes
     useEffect(() => {
         const currentUrl = new URL(window.location.href);
+
         if (selectedCategory === 'all') {
             currentUrl.searchParams.delete('category');
         } else {
@@ -175,8 +169,7 @@ export default function Products({
                                 {getCurrentCategoryName()}
                             </h1>
                             <p className="mb-4 sm:mb-6 text-sm sm:text-base md:text-lg lg:text-xl text-blue-100">
-                                Discover amazing tech products at unbeatable
-                                prices
+                                Discover amazing tech products at unbeatable prices
                             </p>
                             <div className="flex justify-center">
                                 <Badge className="bg-amber-400 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-black">
@@ -191,32 +184,25 @@ export default function Products({
                 <section className="border-b border-slate-200/50 bg-white px-3 sm:px-4 py-4 sm:py-6">
                     <div className="mx-auto max-w-7xl">
                         <div className="flex flex-col items-start justify-between gap-3 sm:gap-4 md:gap-6 lg:flex-row lg:items-center">
-                            {/* Search */}
                             <div className="relative w-full max-w-md flex-1">
                                 <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 transform text-gray-400" />
                                 <Input
                                     type="text"
                                     placeholder="Search products..."
                                     value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
-                                    }
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     className="border-slate-200/50 bg-white/60 pl-9 sm:pl-10 text-sm sm:text-base text-slate-700 backdrop-blur-sm transition-all focus:bg-white/80"
                                 />
                             </div>
 
-                            {/* Controls */}
                             <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 w-full lg:w-auto">
-                                {/* Sort */}
                                 <div className="flex items-center gap-1.5 sm:gap-2">
                                     <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
                                         Sort by:
                                     </label>
                                     <select
                                         value={sortBy}
-                                        onChange={(e) =>
-                                            setSortBy(e.target.value)
-                                        }
+                                        onChange={(e) => setSortBy(e.target.value)}
                                         className="h-7 sm:h-8 rounded-md bg-white/60 px-2 sm:px-3 py-1 text-xs sm:text-sm text-slate-700 focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     >
                                         <option value="name">Name</option>
@@ -228,13 +214,7 @@ export default function Products({
                                         variant="outline"
                                         size="sm"
                                         className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                                        onClick={() =>
-                                            setSortOrder(
-                                                sortOrder === 'asc'
-                                                    ? 'desc'
-                                                    : 'asc',
-                                            )
-                                        }
+                                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                                     >
                                         {sortOrder === 'asc' ? (
                                             <SortAsc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -263,30 +243,20 @@ export default function Products({
                                         {categories.map((category) => (
                                             <button
                                                 key={category.id}
-                                                onClick={() =>
-                                                    setSelectedCategory(
-                                                        category.id,
-                                                    )
-                                                }
+                                                onClick={() => setSelectedCategory(category.id)}
                                                 className={`flex w-full items-center justify-between rounded-xl p-2 sm:p-3 text-left transition-colors ${
-                                                    selectedCategory ===
-                                                    category.id
-                                                        ? 'border border-indigo-200 bg-indigo-50 text-indigo-700'
-                                                        : 'hover:bg-gray-50'
+                                                    selectedCategory === category.id
+                                                        ? 'bg-indigo-50 text-indigo-600'
+                                                        : 'hover:bg-slate-50'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2 sm:gap-3">
-                                                    <div className="w-4 h-4 sm:w-5 sm:h-5">
-                                                        {category.icon}
-                                                    </div>
+                                                    {category.icon}
                                                     <span className="text-sm sm:text-base font-medium">
                                                         {category.name}
                                                     </span>
                                                 </div>
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
-                                                >
+                                                <Badge variant="secondary" className="text-xs">
                                                     {category.count}
                                                 </Badge>
                                             </button>
@@ -295,7 +265,7 @@ export default function Products({
                                 </div>
                             </div>
 
-                            {/* Products Grid/List */}
+                            {/* Products Grid */}
                             <div className="flex-1">
                                 {filteredProducts.length === 0 ? (
                                     <div className="py-8 sm:py-12 text-center">
@@ -311,65 +281,54 @@ export default function Products({
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-3 xl:grid-cols-4">
-                                        {filteredProducts.map((product) => {
-                                            const isFavorite = isFav(product.id);
-                                            return (
-                                                <Link
-                                                    key={product.id}
-                                                    href={`/product/${product.id}`}
-                                                    className="max-w-[255px]"
-                                                >
-                                                    <Card className="group border-slate-200 bg-white transition-shadow duration-150 hover:shadow-lg">
-                                                        <div className="relative">
+                                        {filteredProducts.map((product) => (
+                                            <Card
+                                                key={product.id}
+                                                className="group overflow-hidden transition-all hover:shadow-xl"
+                                            >
+                                                <CardContent className="p-3 sm:p-4">
+                                                    <Link href={`/product/${product.id}`}>
+                                                        <div className="relative mb-3 sm:mb-4 aspect-square overflow-hidden rounded-lg bg-slate-100">
                                                             <img
                                                                 src={product.image}
                                                                 alt={product.name}
-                                                                className="h-64 max-h-64 w-full rounded-xl bg-gray-50 object-cover"
-                                                                loading="lazy"
+                                                                className="h-full w-full object-contain p-2 sm:p-4 transition-transform group-hover:scale-105"
                                                             />
-                                                            <div className="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => handleToggleFavorite(e, product.id)}
-                                                                    className="rounded-full bg-white p-2 sm:p-2.5 shadow-lg hover:scale-105 transition-transform"
-                                                                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                                                                >
-                                                                    <Heart
-                                                                        size={16}
-                                                                        className={`sm:w-[18px] sm:h-[18px] ${isFavorite ? "text-red-600" : "text-slate-400"}`}
-                                                                        fill={isFavorite ? "currentColor" : "none"}
-                                                                    />
-                                                                </button>
+                                                            <div className="absolute right-2 top-2">
+                                                                <FavoriteButton productId={product.id} />
                                                             </div>
                                                         </div>
-                                                        <CardContent className="p-3 sm:p-4 text-slate-800">
-                                                            <h3 className="mb-1.5 sm:mb-2 line-clamp-1 text-base sm:text-lg font-semibold text-slate-900">
-                                                                {product.name}
-                                                            </h3>
-                                                            <div className="mb-2 sm:mb-3 flex items-center">
-                                                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                                                                <span className="ml-1 text-xs sm:text-sm font-medium text-slate-700">
-                                                                    {product.rating}
+
+                                                        <h3 className="mb-1.5 sm:mb-2 line-clamp-2 text-xs sm:text-sm font-semibold text-slate-800">
+                                                            {product.name}
+                                                        </h3>
+
+                                                        <div className="mb-2 sm:mb-3 flex items-center gap-1">
+                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
+                                                            <span className="text-xs sm:text-sm font-medium text-slate-700">
+                                                                {product.rating}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500">
+                                                                ({product.reviews})
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-baseline gap-1 sm:gap-2">
+                                                                <span className="text-base sm:text-lg font-bold text-indigo-600">
+                                                                    ${product.price}
                                                                 </span>
-                                                                <span className="ml-1 text-xs sm:text-sm text-slate-500">
-                                                                    ({product.reviews})
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center justify-between">
-                                                                <div>
-                                                                    <span className="text-lg sm:text-xl font-bold text-indigo-600">
-                                                                        ${product.price}
-                                                                    </span>
-                                                                    <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                                                                {product.originalPrice && product.originalPrice > product.price && (
+                                                                    <span className="text-xs text-slate-500 line-through">
                                                                         ${product.originalPrice}
                                                                     </span>
-                                                                </div>
+                                                                )}
                                                             </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                </Link>
-                                            );
-                                        })}
+                                                        </div>
+                                                    </Link>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
                                     </div>
                                 )}
                             </div>
