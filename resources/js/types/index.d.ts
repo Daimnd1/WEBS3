@@ -41,3 +41,8 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+// Global route function from Ziggy
+declare global {
+    function route(name: string, params?: any): string;
+}
