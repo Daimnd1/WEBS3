@@ -22,8 +22,13 @@ export default function Register() {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Register" />
+     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-blue-300 backdrop-blur-sm p-4 ">
+
+       <div className="flex flex-col w-full max-w-md rounded-2xl bg-slate-200 p-8 drop-shadow-black-glow-x3 ">            
+         <h1 className="mb-6 text-center text-2xl  font-bold text-black-800">Gimme</h1>
+            <h2 className="mb-6 text-center text-lg font-bold text-black-800">
+                    Register Your Account
+                </h2>
 
             <form onSubmit={submit}>
                 <div>
@@ -33,7 +38,7 @@ export default function Register() {
                         id="name"
                         name="name"
                         value={data.name}
-                        className="mt-1 block w-full"
+                        className="mb-1 block text-sm font-medium text-gray-600 w-full rounded-xl border-slate-800 border px-4 py-2 focus:ring-2 focus:ring-black-400 focus:outline-none"
                         autoComplete="name"
                         isFocused={true}
                         onChange={(e) => setData('name', e.target.value)}
@@ -51,7 +56,7 @@ export default function Register() {
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        className="mb-1 block text-sm font-medium text-gray-600 w-full rounded-xl border-slate-800 border px-4 py-2 focus:ring-2 focus:ring-black-400 focus:outline-none"
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
@@ -68,7 +73,7 @@ export default function Register() {
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
+                        className="mb-1 block text-sm font-medium text-gray-600 w-full rounded-xl border-slate-800 border px-4 py-2 focus:ring-2 focus:ring-black-400 focus:outline-none"
                         autoComplete="new-password"
                         onChange={(e) => setData('password', e.target.value)}
                         required
@@ -88,7 +93,7 @@ export default function Register() {
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        className="mt-1 block w-full"
+                        className="mb-1 block text-sm font-medium text-gray-600 w-full rounded-xl border-slate-800 border px-4 py-2 focus:ring-2 focus:ring-black-400 focus:outline-none"
                         autoComplete="new-password"
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
@@ -102,19 +107,30 @@ export default function Register() {
                     />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
+                <div className="justify-center items-center mt-4 flex">
+                 
+
+                    <PrimaryButton className="w-xs rounded-xl justify-center items-center bg-slate-800 py-2 text-white text-center shadow-md transition hover:bg-slate-600 shadow-black-glow shadow-lg" disabled={processing}>
+                        Register
+                    </PrimaryButton>
+
+                 
+                </div>
+                <div className="justify-center items-center mt-4 flex">
+                        <Link
                         href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="rounded-md text-sm justify-center items-center text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
                         Already registered?
                     </Link>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
                 </div>
+            
             </form>
-        </GuestLayout>
-    );
+        
+            
+        
+          </div>
+        </div>
+        );
 }
