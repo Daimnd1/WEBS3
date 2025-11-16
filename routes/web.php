@@ -2,35 +2,23 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Public routes
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
+Route::get('/', [ProductController::class, 'home'])->name('home');
 
-Route::get('/products', function () {
-    $category = request('category');
-    return Inertia::render('Products', [
-        'category' => $category
-    ]);
-})->name('products');
+Route::get('/products', [ProductController::class, 'index'])->name('products');
 
-Route::get('/product/{id}', function ($id) {
-    return Inertia::render('IndividualProductsPage', [
-        'productId' => $id
-    ]);
-})->name('product.show');
+Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
 
 Route::get('/cart', function () {
     return Inertia::render('CartVisualizationDemo');
 })->name('cart');
 
-Route::get('/favorites', function () {
-    return Inertia::render('favorites');
-})->name('favorites');
+Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorites');
 
 
 

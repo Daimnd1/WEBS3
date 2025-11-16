@@ -41,3 +41,44 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Product {
+    id: string;
+    name: string;
+    price: number;
+    originalPrice: number;
+    image: string;
+    rating: number;
+    reviews: number;
+    category: string;
+    description?: string;
+    specs?: ProductSpec[];
+}
+
+export interface ProductSpec {
+    name: string;
+    value: string;
+}
+
+export interface Category {
+    name: string;
+    icon: React.ReactNode; 
+    products: Product[];
+}
+
+export interface FeaturedProduct extends Product {
+    badge?: string;
+}
+
+export interface FeaturedProduct {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    originalPrice: number;
+    rating: number;
+    image: string;
+    badge: string;
+    highlight: string; 
+    catchyText: string; 
+}

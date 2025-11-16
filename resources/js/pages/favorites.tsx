@@ -1,43 +1,47 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { FavoriteButton } from '@/components/FavoriteButton';
+import { useFavorites } from '@/lib/FavoritesProvider';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { Heart, Star } from 'lucide-react';
-import { allProducts } from '@/data/products/products';
-import { useEffect, useState } from 'react';
 
-export default function Favorites() {
-    const [ids, setIds] = useState<string[]>([]);
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    originalPrice?: number;
+    image: string | null;
+    rating: number;
+    reviews: number;
+    category: string;
+    description?: string;
+}
 
-    // Load favorite IDs from localStorage
-    useEffect(() => {
-        try {
-            const v = JSON.parse(localStorage.getItem('favorites:ids') || '[]');
-            setIds(Array.isArray(v) ? v : []);
-        } catch {
-            setIds([]);
-        }
-    }, []);
+interface FavoritesProps {
+    products: Product[]; // ✅ Accept products from backend
+}
 
-    // Handle removing a favorite
-    const handleRemoveFavorite = (productId: number) => {
-        const newIds = ids.filter(id => id !== productId.toString());
-        setIds(newIds);
-        localStorage.setItem('favorites:ids', JSON.stringify(newIds));
-        window.dispatchEvent(new CustomEvent('favorites:changed'));
-    };
+export default function Favorites({ products }: FavoritesProps) {
+    const { ids } = useFavorites();
 
-    // Filter products based on favorite IDs
-    const favoriteProducts = allProducts.filter((product) =>
-        ids.includes(product.id.toString()),
-    );
+    console.log('🟣 Favorites page - All products:', products.length); // ✅ DEBUG
+    console.log('🟣 Favorites page - Favorite IDs:', ids); // ✅ DEBUG
+
+    // Filter products by favorite IDs
+    const favoriteProducts = products.filter((product) => {
+        const isFav = ids.includes(product.id);
+        console.log(`🟣 Product ${product.id} is favorite:`, isFav); // ✅ DEBUG
+        return isFav;
+    });
+
+    console.log('🟣 Filtered favorite products:', favoriteProducts.length); // ✅ DEBUG
 
     return (
         <>
             <Head title="Favorites - Gimme Electronics" />
             <AppLayout>
-                {/* Header Section */}
                 <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-3 sm:px-4 pt-20 sm:pt-32 md:pt-40 lg:pt-48 pb-6 sm:pb-8">
                     <div className="mx-auto max-w-7xl">
                         <div className="text-center text-white">
@@ -56,7 +60,6 @@ export default function Favorites() {
                     </div>
                 </section>
 
-                {/* Main Content */}
                 <section className="bg-gray-50 px-3 sm:px-4 py-8 sm:py-10 md:py-12">
                     <div className="mx-auto max-w-7xl">
                         {favoriteProducts.length === 0 ? (
@@ -68,7 +71,7 @@ export default function Favorites() {
                                 <p className="mb-4 sm:mb-6 text-sm sm:text-base text-gray-500">
                                     Start adding products to your favorites list
                                 </p>
-                                <Link href="/products">
+                                <Link href="/">
                                     <Button className="bg-blue-600 hover:bg-blue-700 text-sm sm:text-base">
                                         Browse Products
                                     </Button>
@@ -77,30 +80,21 @@ export default function Favorites() {
                         ) : (
                             <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {favoriteProducts.map((product) => (
-                                    <Link
+                                    <Card
                                         key={product.id}
-                                        href={`/product/${product.id}`}
-                                        className="block w-full"
+                                        className="group overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-150"
                                     >
-                                        <Card className="group overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-150">
-                                            <CardContent className="p-0">
+                                        <CardContent className="p-0">
+                                            <Link href={`/product/${product.id}`} className="block">
                                                 <div className="relative overflow-hidden">
                                                     <img
-                                                        src={product.image}
+                                                        src={product.image || '/placeholder.png'}
                                                         alt={product.name}
                                                         className="h-48 sm:h-56 md:h-64 w-full object-contain bg-gray-50 p-3 sm:p-4"
                                                     />
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            handleRemoveFavorite(
-                                                                product.id,
-                                                            );
-                                                        }}
-                                                        className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full bg-white p-1.5 sm:p-2 shadow-md transition-colors duration-150 hover:bg-red-50"
-                                                    >
-                                                        <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-red-500 text-red-500" />
-                                                    </button>
+                                                    <div className="absolute right-2 top-2 sm:right-3 sm:top-3">
+                                                        <FavoriteButton productId={product.id} />
+                                                    </div>
                                                 </div>
                                                 <div className="p-3 sm:p-4">
                                                     <div className="mb-1.5 sm:mb-2">
@@ -111,6 +105,7 @@ export default function Favorites() {
                                                     <h3 className="mb-1.5 sm:mb-2 line-clamp-2 text-sm sm:text-base font-semibold text-gray-900">
                                                         {product.name}
                                                     </h3>
+
                                                     <div className="mb-2 sm:mb-3 flex items-center gap-1">
                                                         <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-400 text-amber-400" />
                                                         <span className="text-xs sm:text-sm font-medium text-gray-900">
@@ -126,17 +121,14 @@ export default function Favorites() {
                                                         </span>
                                                         {product.originalPrice && (
                                                             <span className="text-xs sm:text-sm text-gray-500 line-through">
-                                                                $
-                                                                {
-                                                                    product.originalPrice
-                                                                }
+                                                                ${product.originalPrice}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
+                                            </Link>
+                                        </CardContent>
+                                    </Card>
                                 ))}
                             </div>
                         )}

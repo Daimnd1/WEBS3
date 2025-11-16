@@ -1,23 +1,13 @@
-import { allProducts } from '@/data/products/products';
 import AppLayout from '@/layouts/app-layout';
 import { Star } from 'lucide-react';
+import type { Product } from '@/types';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
 interface ProductPageProps {
-    productId: number;
+    product: Product;
 }
 
-export default function ProductPage({ productId }: ProductPageProps) {
-    const id = Number(productId);
-    const product = allProducts.find((product) => product.id === id);
-
-    if (!product) {
-        return (
-            <AppLayout>
-                <h1>Product not found</h1>
-            </AppLayout>
-        );
-    }
-
+export default function ProductPage({ product }: ProductPageProps) {
     return (
         <AppLayout>
             <head>
@@ -27,11 +17,16 @@ export default function ProductPage({ productId }: ProductPageProps) {
             <section className="grid justify-center bg-slate-100 p-4 md:p-8 lg:p-12">
                 <article className="mt-16 grid h-fit max-w-3xl rounded-xl bg-slate-50 p-6 pb-12 text-black shadow-2xl lg:max-w-6xl lg:grid-cols-2">
                     <section>
-                        <img
-                            src={product.image}
-                            alt={`${product.name} main image`}
-                            className="h-full w-full rounded-lg object-contain"
-                        />
+                        <div className="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm">
+                            <img
+                                src={product.image}
+                                alt={product.name}
+                                className="h-full w-full object-contain"
+                            />
+                            <div className="absolute right-4 top-4">
+                                <FavoriteButton productId={product.id} size="lg" />
+                            </div>
+                        </div>
                     </section>
                     <section className="grid content-center">
                         <h1 className="md: text-3xl text-slate-800">
@@ -63,19 +58,9 @@ export default function ProductPage({ productId }: ProductPageProps) {
                             Specifications
                         </h2>
                         <ul className="mt-1 grid gap-1 rounded-lg text-slate-600">
-                            {[
-                                'Placeholder1',
-                                'Placeholder2',
-                                'Placeholder3',
-                                'Placeholder4',
-                                'Placeholder5',
-                                'Placeholder6',
-                            ].map((item) => (
-                                <li
-                                    className="border-b border-slate-200 pb-1 last:border-b-0"
-                                    key={item}
-                                >
-                                    {item}
+                            {product.specs?.map((spec) => (
+                                <li key={spec.name} className="border-b border-slate-200 pb-1 last:border-b-0">
+                                    <strong>{spec.name}:</strong> {spec.value}
                                 </li>
                             ))}
                         </ul>
@@ -128,20 +113,8 @@ export default function ProductPage({ productId }: ProductPageProps) {
                         <h2 className="mt-2 text-2xl font-semibold text-slate-700">
                             Description/ Product overview
                         </h2>
-                        <p className='col-span-full'>
-                            Placeholder text: The old lighthouse keeper, Elias, watched the churning 
-                            expanse of the Atlantic as it swallowed the last sliver of the setting sun. 
-                            For forty years, the rhythm of the waves and the dependable swing of the lamp had 
-                            been the only constants in his life, a silent, comforting counterpoint to the distant 
-                            clamor of the mainland. He often pondered the countless ships his beam had guided, vessels 
-                            carrying stories, cargo, and hopes he would never know, yet felt intrinsically linked to. 
-                            Tonight, however, the air held a strange, brittle silence, an unnatural pause before an 
-                            impending storm. He checked the brass mechanism one last time, the gears humming with meticulous 
-                            precision. Outside, a lone gull cried out, its voice thin against the sudden whip of the rising wind. 
-                            Elias pulled his heavy woolen cardigan tighter, his thoughts drifting to a faded photograph tucked 
-                            into his breast pocket—a reminder of a life he had chosen to leave behind for the solitary, yet profound, 
-                            duty of the beacon. The rain began, tapping a rapid, urgent beat against the thick glass of the lantern room, 
-                            signaling the start of another long, vigilant night.</p>
+                        <p className="whitespace-pre-line text-slate-600">
+                        {product.description || 'No description available for this product.'}</p>
                     </article>
                 </article>
             </section>
