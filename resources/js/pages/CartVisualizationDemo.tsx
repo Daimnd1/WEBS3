@@ -1,7 +1,8 @@
 ﻿import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
 import { allProducts } from '@/data/products/products';
 import { useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
 
 interface ProductPageProps {
     productId?: number;
@@ -28,6 +29,8 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState('');
   
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -44,6 +47,78 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
   
   function removeItem(id: number) {
     setItems(items.filter(item => item.id !== id));
+  }
+
+  function handleCheckoutClick() {
+    if (!auth?.user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (items.length === 0) {
+      setCheckoutError('Your cart is empty');
+      return;
+    }
+
+    setShowAddressModal(true);
+  }
+
+  async function handleSubmitOrder() {
+    if (!shippingAddress.trim()) {
+      setCheckoutError('Please enter a shipping address');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    setCheckoutError('');
+    setCheckoutSuccess(false);
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+
+      const response = await fetch('/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shipping_address: shippingAddress,
+        }),
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Checkout failed');
+      }
+
+      setCheckoutSuccess(true);
+      setItems([]);
+      setShippingAddress('');
+      setShowAddressModal(false);
+      console.log('Order created:', data.order_id);
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
+    } finally {
+      setIsCheckingOut(false);
+    }
   }
 
   async function handleCheckout() {
@@ -108,61 +183,38 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
   }
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <header className="flex items-center p-6 text-slate-900 bg-slate-50 rounded-xl shadow-lg mx-4 mt- mb-10">
-        <nav aria-label="Back" className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Go back"
-            onClick={() => window.history.back()}
-            className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
-          >
-            <ArrowLeft size={20} />
-            <span>Continue Shopping</span>
-          </button>
-        </nav>
+    <AppLayout>
+      <main className="min-h-screen bg-white">
+        {/* Header Section */}
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-3 sm:px-4 pt-20 sm:pt-32 md:pt-40 lg:pt-48 pb-6 sm:pb-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center text-white">
+              <h1 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
+                Shopping Cart
+              </h1>
+              <p className="mb-4 sm:mb-6 text-sm sm:text-base md:text-lg lg:text-xl text-blue-100">
+                {itemCount} items are ready for checkout
+              </p>
+            </div>
+          </div>
+        </section>
 
-        <div className="ml-5">
-          <h1 className="text-3xl font-medium">Shopping Cart</h1>
-          <p className="text-sm text-slate-400">{itemCount} items are ready for checkout</p>
-        </div>
-
-        <nav className="flex items-center gap-2 ml-auto" aria-label="Cart actions">
-          <button
-            type="button"
-            aria-label="Save for later"
-            className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
-          >
-            <Heart size={20} />
-            <span>Save For Later</span>
-          </button>
-          <button
-            type="button"
-            aria-label="Share cart"
-            className="flex items-center gap-2 p-2 hover:text-slate-600 text-slate-400"
-          >
-            <Share2 size={20} />
-            <span>Share Cart</span>
-          </button>
-        </nav>
-      </header>
-
-      <div className="mx-4 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-       
-        <section aria-labelledby="cart-items-title" className="lg:col-span-2 space-y-4">
-          <h2 id="cart-items-title" className="text-xl font-semibold text-slate-900">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 py-4 sm:py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start pb-10">
+            <section aria-labelledby="cart-items-title" className="lg:col-span-2 space-y-4">
+          <h2 id="cart-items-title" className="text-xl font-semibold text-blue-900">
             Cart Items
           </h2>
 
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-500 bg-white rounded-xl shadow-lg">
+            <div className="flex flex-col items-center justify-center p-12 text-gray-500 bg-white rounded-xl shadow-lg border-t-4 border-blue-500">
               <ShoppingCart size={48} className="mb-4 opacity-30" />
               <p className="text-xl font-medium">Your cart is empty</p>
               <p className="text-sm mt-2">Add some products to get started</p>
             </div>
           ) : (
             items.map(item => (
-              <article key={item.id} className="flex p-6 text-slate-900 bg-white rounded-xl shadow-lg">
+              <article key={item.id} className="flex p-6 text-slate-900 bg-white rounded-xl shadow-lg border-l-4 border-blue-500">
                 <div className="flex items-start gap-4 w-full">
                   <figure className="w-20 h-20 rounded-md bg-slate-100 flex items-center justify-center overflow-hidden">
                     <img
@@ -227,8 +279,8 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
         </section>
 
        
-        <aside aria-labelledby="order-summary-title" className="bg-white rounded-xl shadow-lg p-6 h-max sticky top-6">
-          <h2 id="order-summary-title" className="text-2xl font-semibold text-slate-900">
+        <aside aria-labelledby="order-summary-title" className="bg-white rounded-xl shadow-lg p-6 h-max sticky top-6 border-t-4 border-blue-600">
+          <h2 id="order-summary-title" className="text-2xl font-semibold text-blue-900">
             Order Summary
           </h2>
           <p className="mt-2 text-slate-500">Review prices, shipping, and secure checkout options.</p>
@@ -271,8 +323,8 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
           <button
             type="button"
             disabled={items.length === 0 || isCheckingOut}
-            onClick={handleCheckout}
-            className="relative overflow-hidden isolate mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 font-medium text-white bg-slate-800 transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-slate-600 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleCheckoutClick}
+            className="relative overflow-hidden isolate mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-gradient-to-r after:from-blue-700 after:to-purple-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Proceed to Checkout"
           >
             <CreditCard size={18} />
@@ -284,9 +336,66 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
             Secure checkout with SSL encryption
           </p>
         </aside>
+        </div>
       </div>
 
-      <footer className="h-10" />
-    </main>
+      {showAddressModal && (
+        <>
+            <div className="fixed inset-0 backdrop-blur-sm z-40" onClick={() => {
+            setShowAddressModal(false);
+            setCheckoutError('');
+          }} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4 pointer-events-auto border-t-4 border-blue-600">
+              <h3 className="text-2xl font-semibold text-blue-900 mb-4">Shipping Address</h3>
+              
+              <div className="mb-4">
+                <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-2">
+                  Enter your shipping address
+                </label>
+                <textarea
+                  id="address"
+                  value={shippingAddress}
+                  onChange={(e) => setShippingAddress(e.target.value)}
+                  placeholder="Enter your address here..."
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 resize-none"
+                  rows={4}
+                />
+              </div>
+
+              {checkoutError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {checkoutError}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddressModal(false);
+                    setCheckoutError('');
+                  }}
+                  disabled={isCheckingOut}
+                  className="flex-1 px-4 py-3 border border-slate-200 rounded-lg font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitOrder}
+                  disabled={isCheckingOut || !shippingAddress.trim()}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckingOut ? 'Processing...' : 'Place Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      </main>
+    </AppLayout>
   );
 }

@@ -35,7 +35,7 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
-            // Get the "Pending" status - it should already exist in your database
+            
             $pendingStatus = OrderStatuses::where('name', 'PENDING')->first();
             
             if (!$pendingStatus) {
