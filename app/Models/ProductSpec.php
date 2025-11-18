@@ -2,24 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class ProductSpec extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
-
+    protected $fillable = ['value', 'spec_attribute_id', 'product_id'];
+    
+    const UPDATED_AT = null;
+    
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $table = 'product_specs';
 
-    protected $fillable = [
-        'product_id',
-        'spec_attribute_id',
-        'value',
-    ];
-
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
