@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Package, ShoppingCart, Star, UserCircle, Heart, ChevronDown, LayoutDashboard } from 'lucide-react';
-import { useFavorites } from "@/lib/useFavorites";
+import { Package, ShoppingCart, UserCircle, Heart, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { useFavorites } from '@/lib/FavoritesProvider';
 import Dropdown from '@/components/Dropdown';
 import { Auth } from '@/types';
 
