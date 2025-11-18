@@ -43,12 +43,13 @@ class Product extends Model
    
     public function getRatingAttribute(): float
     {
-        return 4.5; 
+        // Cache in database or return fixed value to avoid calculation
+        return $this->attributes['rating'] ?? 4.5; 
     }
     
-   
     public function getReviewsAttribute(): int
     {
-        return rand(50, 200); 
+        // Cache in database or return seeded value based on product ID
+        return $this->attributes['reviews'] ?? (100 + (crc32($this->id) % 100)); 
     }
 }

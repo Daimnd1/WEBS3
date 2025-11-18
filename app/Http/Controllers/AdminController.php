@@ -15,18 +15,23 @@ class AdminController extends Controller
      */
     public function index(Request $request)
     {
-        $categories = Category::all();
+        $categories = Category::select('id', 'name')->get();
         $selectedCategoryId = $request->query('category');
         $products = null;
         $specAttributes = [];
 
         if ($selectedCategoryId) {
-            $products = Product::with(['category', 'specs.specAttribute'])
+            // Don't load specs upfront for performance - load them when editing
+            $products = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
+                ->with('category:id,name')
                 ->where('category_id', $selectedCategoryId)
                 ->latest()
+                ->limit(100)
                 ->get();
             
-            $category = Category::with('specAttributes')->find($selectedCategoryId);
+            $category = Category::select('id')
+                ->with('specAttributes:id,name,unit')
+                ->find($selectedCategoryId);
             $specAttributes = $category ? $category->specAttributes : [];
         }
 
@@ -105,6 +110,19 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'Product updated successfully!');
+    }
+
+    /**
+     * Get a single product with specs for editing.
+     */
+    public function getProduct(Product $product)
+    {
+        $product->load([
+            'specs:id,product_id,spec_attribute_id,value',
+            'specs.specAttribute:id,name,unit'
+        ]);
+
+        return response()->json($product);
     }
 
     /**
