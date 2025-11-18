@@ -11,11 +11,17 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
-            import.meta.glob('./pages/**/*.tsx')
-        ),
+    resolve: async (name) => {
+        const pages = import.meta.glob('./pages/**/*.{tsx,jsx}');
+        // Try .tsx first, then .jsx
+        for (const ext of ['tsx', 'jsx']) {
+            const path = `./pages/${name}.${ext}`;
+            if (pages[path]) {
+                return pages[path]();
+            }
+        }
+        throw new Error(`Page not found: ${name}`);
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

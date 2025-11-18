@@ -46,18 +46,18 @@ const navbar = () => {
                 {auth?.user ? (
                     <Dropdown>
                         <Dropdown.Trigger>
-                            <button className="flex items-center gap-1.5 sm:gap-2 rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50">
+                            <button type="button" className="flex items-center gap-1.5 sm:gap-2 rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50">
                                 <UserCircle size={20} className="sm:w-6 sm:h-6" />
                                 <ChevronDown size={16} className="hidden sm:block" />
                             </button>
                         </Dropdown.Trigger>
 
                         <Dropdown.Content>
-                            <Dropdown.Link href="/profile">
+                            <Dropdown.Link href={route('profile.edit')}>
                                 Profile
                             </Dropdown.Link>
                             <Dropdown.Link
-                                href="/logout"
+                                href={route('logout')}
                                 method="post"
                                 as="button"
                             >
@@ -67,7 +67,7 @@ const navbar = () => {
                     </Dropdown>
                 ) : (
                     <Link
-                        href="/login"
+                        href={route('login')}
                         className="cursor-pointer rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50"
                         title="Login"
                     >
