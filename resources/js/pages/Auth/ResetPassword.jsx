@@ -92,3 +92,4 @@ export default function ResetPassword({ token, email }) {
         </GuestLayout>
     );
 }
+

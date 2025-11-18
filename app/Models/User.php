@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -48,8 +49,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the role that the user belongs to.
+     * Get the user's cart.
      */
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
+    }
+  
     public function role()
     {
         return $this->belongsTo(Role::class);
