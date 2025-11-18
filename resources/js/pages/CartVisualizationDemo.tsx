@@ -1,7 +1,6 @@
 ﻿import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
-import { allProducts } from '@/data/products/products';
-import { useState } from 'react';
-import { usePage, Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 
 interface ProductPageProps {
@@ -9,22 +8,25 @@ interface ProductPageProps {
 }
 
 interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
 }
 
+const CART_STORAGE_KEY = 'shopping_cart';
+
 export default function CartVisualisationDemo({productId} : ProductPageProps) {
   const { auth } = usePage().props as any;
-  const prod1 = allProducts.find(p => p.id === 101); 
-  const prod2 = allProducts.find(p => p.id === 301); 
   
-  const [items, setItems] = useState<CartItem[]>([
-    { id: prod1!.id, name: prod1!.name, price: prod1!.price, image: prod1!.image, quantity: 1 },
-    { id: prod2!.id, name: prod2!.name, price: prod2!.price, image: prod2!.image, quantity: 2 },
-  ]);
+  // Load cart from localStorage
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  });
 
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
@@ -32,21 +34,31 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [shippingAddress, setShippingAddress] = useState('');
   
+  // Save to localStorage whenever items change
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
+  
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const total = subtotal;
   
-  function increaseQty(id: number) {
+  function increaseQty(id: string) {
     setItems(items.map(item => 
-item.id === id ? {...item, quantity: item.quantity + 1 } : item));
+      item.id === id ? {...item, quantity: item.quantity + 1 } : item));
   }
 
-  function decreaseQty(id: number) {
+  function decreaseQty(id: string) {
     setItems(items.map(item => item.id === id && item.quantity > 1 ? {...item, quantity: item.quantity - 1 } : item));
   }
   
-  function removeItem(id: number) {
+  function removeItem(id: string) {
     setItems(items.filter(item => item.id !== id));
+  }
+
+  function clearCart() {
+    setItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
   }
 
   function handleCheckoutClick() {
@@ -107,12 +119,12 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
       }
 
       setCheckoutSuccess(true);
-      setItems([]);
       setShippingAddress('');
       setShowAddressModal(false);
+      clearCart(); // Clear localStorage cart
       console.log('Order created:', data.order_id);
       setTimeout(() => {
-        window.location.href = '/';
+        router.visit('/');
       }, 2000);
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
@@ -170,10 +182,10 @@ item.id === id ? {...item, quantity: item.quantity + 1 } : item));
       }
 
       setCheckoutSuccess(true);
-      setItems([]);
+      clearCart(); // Clear localStorage cart
       console.log('Order created:', data.order_id);
       setTimeout(() => {
-        window.location.href = '/';
+        router.visit('/');
       }, 2000);
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');

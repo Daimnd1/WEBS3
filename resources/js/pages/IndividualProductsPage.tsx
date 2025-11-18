@@ -2,12 +2,43 @@ import AppLayout from '@/layouts/app-layout';
 import { Star } from 'lucide-react';
 import type { Product } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { useState } from 'react';
+
+const CART_STORAGE_KEY = 'shopping_cart';
 
 interface ProductPageProps {
     product: Product;
 }
 
 export default function ProductPage({ product }: ProductPageProps) {
+    const [quantity, setQuantity] = useState<number>(1);
+    const [addedToCart, setAddedToCart] = useState<boolean>(false);
+
+    const addToCart = () => {
+        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
+        const cart = cartJson ? JSON.parse(cartJson) : [];
+        
+        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
+        
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += quantity;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: quantity
+            });
+        }
+        
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        
+        // Show success state
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
+    };
+
     return (
         <AppLayout>
             <head>
@@ -79,15 +110,21 @@ export default function ProductPage({ product }: ProductPageProps) {
                                         name="quantity"
                                         min="1"
                                         max="10"
-                                        defaultValue="1"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                                     />
                                 </div>
 
                                 <button
                                     type="button"
-                                    className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
+                                    onClick={addToCart}
+                                    className={`relative z-0 w-full cursor-pointer overflow-hidden rounded-md py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 ${
+                                        addedToCart 
+                                            ? 'bg-green-600 after:bg-green-700' 
+                                            : 'bg-indigo-500 after:bg-indigo-700'
+                                    }`}
                                 >
-                                    Add to Cart
+                                    {addedToCart ? '✓ Added to Cart!' : 'Add to Cart'}
                                 </button>
                                 
                             </div>
