@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { ArrowLeft, Smartphone, Watch, Laptop, Headphones, Tablet, Camera, Speaker, Monitor } from 'lucide-react';
 
 interface Product {
     id: string;
@@ -50,14 +58,29 @@ interface Category {
 }
 
 interface Props {
-    products: Product[];
+    products: Product[] | null;
     categories: Category[];
+    selectedCategoryId?: string;
 }
 
-export default function Dashboard({ products, categories }: Props) {
+export default function Dashboard({ products, categories, selectedCategoryId }: Props) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+
+    const getCategoryIcon = (categoryName: string) => {
+        const name = categoryName.toLowerCase();
+        if (name.includes('phone')) return Smartphone;
+        if (name.includes('watch')) return Watch;
+        if (name.includes('laptop') || name.includes('computer')) return Laptop;
+        if (name.includes('headphone') || name.includes('earphone') || name.includes('audio')) return Headphones;
+        if (name.includes('tablet')) return Tablet;
+        if (name.includes('camera')) return Camera;
+        if (name.includes('speaker')) return Speaker;
+        if (name.includes('monitor') || name.includes('display')) return Monitor;
+        return Smartphone; // default
+    };
 
     const { data: addData, setData: setAddData, post: addPost, processing: addProcessing, reset: addReset } = useForm({
         name: '',
@@ -65,8 +88,14 @@ export default function Dashboard({ products, categories }: Props) {
         original_price: '',
         image_url: '',
         description: '',
-        category_id: '',
+        category_id: selectedCategoryId || '',
     });
+
+    useEffect(() => {
+        if (selectedCategoryId) {
+            setAddData('category_id', selectedCategoryId);
+        }
+    }, [selectedCategoryId]);
 
     const { data: editData, setData: setEditData, patch, processing: editProcessing, reset: editReset } = useForm({
         name: '',
@@ -124,9 +153,51 @@ export default function Dashboard({ products, categories }: Props) {
             <Head title="Admin Dashboard" />
 
             <div className="container mx-auto px-4 py-8 mt-16">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold">Product Management</h1>
-                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                {!selectedCategoryId ? (
+                    // Category Selection View
+                    <div>
+                        <h1 className="text-3xl font-bold mb-8">Select a Category</h1>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {categories.map((category) => {
+                                const Icon = getCategoryIcon(category.name);
+                                return (
+                                    <Link
+                                        key={category.id}
+                                        href={route('admin.dashboard', { category: category.id })}
+                                        className="block group"
+                                    >
+                                        <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-full border-2 hover:border-indigo-400">
+                                            <CardContent className="flex flex-col items-center justify-center p-6">
+                                                <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl mb-3 group-hover:from-indigo-200 group-hover:to-purple-200 transition-colors">
+                                                    <Icon className="w-8 h-8 text-indigo-600" />
+                                                </div>
+                                                <CardTitle className="text-lg text-center">{category.name}</CardTitle>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    // Product Management View
+                    <div>
+                        <div className="mb-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Link href={route('admin.dashboard')}>
+                                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                                        <ArrowLeft className="w-4 h-4 mr-1" />
+                                        Back
+                                    </Button>
+                                </Link>
+                                <span className="text-gray-400">/</span>
+                                <span className="text-sm text-gray-600">{selectedCategory?.name}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <h1 className="text-3xl font-bold">
+                                    {selectedCategory?.name} Products
+                                </h1>
+                                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
                             <Button>Add New Product</Button>
                         </DialogTrigger>
@@ -218,76 +289,91 @@ export default function Dashboard({ products, categories }: Props) {
                             </form>
                         </DialogContent>
                     </Dialog>
-                </div>
+                            </div>
+                        </div>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Image</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead>Price</TableHead>
-                                <TableHead>Original Price</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {products.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                        No products found. Add your first product to get started.
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                products.map((product) => (
-                                    <TableRow key={product.id}>
-                                        <TableCell>
-                                            {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-16 h-16 object-cover rounded"
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                                                    No image
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="font-medium">{product.name}</TableCell>
-                                        <TableCell>{product.category?.name}</TableCell>
-                                        <TableCell>${product.price}</TableCell>
-                                        <TableCell>
-                                            {product.original_price ? `$${product.original_price}` : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => handleEditClick(product)}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={() => handleDelete(product.id)}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </TableCell>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                        <TableHead className="w-20">Image</TableHead>
+                                        <TableHead className="font-semibold">Name</TableHead>
+                                        <TableHead className="font-semibold">Category</TableHead>
+                                        <TableHead className="font-semibold">Price</TableHead>
+                                        <TableHead className="font-semibold">Original Price</TableHead>
+                                        <TableHead className="text-right font-semibold">Actions</TableHead>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {!products || products.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-12">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="text-gray-400 text-lg">📦</div>
+                                                    <p className="text-gray-500 font-medium">No products found</p>
+                                                    <p className="text-gray-400 text-sm">Add your first product to get started</p>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        products.map((product) => (
+                                            <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
+                                                <TableCell>
+                                                    {product.image_url ? (
+                                                        <img
+                                                            src={product.image_url}
+                                                            alt={product.name}
+                                                            className="w-14 h-14 object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs">
+                                                            No image
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="font-semibold text-gray-900">{product.name}</TableCell>
+                                                <TableCell>
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                        {product.category?.name}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="font-semibold text-gray-900">${product.price}</TableCell>
+                                                <TableCell className="text-gray-500">
+                                                    {product.original_price ? (
+                                                        <span className="line-through">${product.original_price}</span>
+                                                    ) : (
+                                                        <span>-</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex gap-2 justify-end">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleEditClick(product)}
+                                                            className="hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300"
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            onClick={() => handleDelete(product.id)}
+                                                            className="hover:bg-red-600"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
 
-                {/* Edit Dialog */}
-                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                        {/* Edit Dialog */}
+                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Edit Product</DialogTitle>
@@ -376,6 +462,8 @@ export default function Dashboard({ products, categories }: Props) {
                         </form>
                     </DialogContent>
                 </Dialog>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

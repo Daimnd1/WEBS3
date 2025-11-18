@@ -12,14 +12,23 @@ class AdminController extends Controller
     /**
      * Display the admin dashboard with all products.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->latest()->get();
         $categories = Category::all();
+        $selectedCategoryId = $request->query('category');
+        $products = null;
+
+        if ($selectedCategoryId) {
+            $products = Product::with('category')
+                ->where('category_id', $selectedCategoryId)
+                ->latest()
+                ->get();
+        }
 
         return Inertia::render('Admin/Dashboard', [
             'products' => $products,
             'categories' => $categories,
+            'selectedCategoryId' => $selectedCategoryId,
         ]);
     }
 
