@@ -11,7 +11,8 @@ class ProductSpecAttribute extends Model
     use HasUuids;
 
     protected $fillable = ['name', 'unit'];
-    
+    protected $table = 'product_spec_attributes';
+  
     const UPDATED_AT = null;
     
     protected $keyType = 'string';
@@ -20,5 +21,10 @@ class ProductSpecAttribute extends Model
     public function specs(): HasMany
     {
         return $this->hasMany(ProductSpec::class, 'spec_attribute_id');
+    }
+  
+    public function categoryAttributes()
+    {
+        return $this->hasMany(CategoryAttribute::class, 'spec_attribute_id');
     }
 }

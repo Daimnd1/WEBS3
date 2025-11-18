@@ -55,11 +55,11 @@ class ProductController extends Controller
 
     public function show(string $id): Response
     {
-        $product = Product::with(['category', 'specs.attribute'])->findOrFail($id);
+        $product = Product::with(['category', 'specs.specAttribute'])->findOrFail($id);
 
         $specs = $product->specs->map(function ($spec) {
             return [
-                'name' => $spec->attribute->name,
+                'name' => $spec->specAttribute->name,
                 'value' => $spec->value,
             ];
         });

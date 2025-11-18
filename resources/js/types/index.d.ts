@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    isAdmin?: boolean;
 }
 
 export interface BreadcrumbItem {
@@ -42,6 +43,10 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+// Global route function from Ziggy
+declare global {
+    function route(name: string, params?: any): string;
+}
 export interface Product {
     id: string;
     name: string;
