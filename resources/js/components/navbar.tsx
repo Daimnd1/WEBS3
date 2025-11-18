@@ -1,12 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Package, ShoppingCart, UserCircle, Heart, ChevronDown } from 'lucide-react';
-import { useFavorites } from '@/lib/FavoritesProvider';
+import { Package, ShoppingCart, Star, UserCircle, Heart, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { useFavorites } from "@/lib/useFavorites";
 import Dropdown from '@/components/Dropdown';
+import { Auth } from '@/types';
 
 const navbar = () => {
     const { ids } = useFavorites();
-    const { auth } = (usePage().props as unknown) as { auth: { user: any } };
-    
+    const { auth } = usePage().props as unknown as { auth: Auth };
     return (
         <nav className="fixed top-0 z-50 flex h-14 sm:h-16 md:h-20 lg:h-24 w-screen flex-row items-center justify-between bg-gradient-to-b from-white/60 to-white/30 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-sm">
             <Link href="/">
@@ -34,7 +34,15 @@ const navbar = () => {
                 >
                     <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
                 </Link>
-
+                {auth.isAdmin && (
+                    <Link
+                        href={route('admin.dashboard')}
+                        className="cursor-pointer rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50"
+                        title="Admin Dashboard"
+                    >
+                        <LayoutDashboard size={20} className="sm:w-6 sm:h-6" />
+                    </Link>
+                )}
                 {auth?.user ? (
                     <Dropdown>
                         <Dropdown.Trigger>

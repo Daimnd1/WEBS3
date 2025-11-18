@@ -13,6 +13,11 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    resolve: {
+        alias: {
+            '@': '/home/damian_chitoraga/websp3/WEBS3/resources/js',
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },

@@ -16,13 +16,14 @@ class ProductSpec extends Model
     
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $table = 'product_specs';
 
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function attribute(): BelongsTo
+    public function specAttribute()
     {
         return $this->belongsTo(ProductSpecAttribute::class, 'spec_attribute_id');
     }
