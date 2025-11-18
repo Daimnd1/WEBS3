@@ -5,24 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class CategoryAttribute extends Model
 {
     use HasUuids;
 
     public $timestamps = false;
 
-    protected $fillable = [
-        'name',
-        'price',
-        'original_price',
-        'image_url',
-        'description',
-        'category_id',
-    ];
+    protected $table = 'category_attributes';
 
-    protected $casts = [
-        'price' => 'integer',
-        'original_price' => 'integer',
+    protected $fillable = [
+        'category_id',
+        'spec_attribute_id',
     ];
 
     public function category()
@@ -30,8 +23,8 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function specs()
+    public function specAttribute()
     {
-        return $this->hasMany(ProductSpec::class);
+        return $this->belongsTo(ProductSpecAttribute::class, 'spec_attribute_id');
     }
 }

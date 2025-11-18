@@ -19,4 +19,9 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function specAttributes()
+    {
+        return $this->belongsToMany(ProductSpecAttribute::class, 'category_attributes', 'category_id', 'spec_attribute_id');
+    }
 }

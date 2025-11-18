@@ -37,6 +37,17 @@ import {
 } from '@/components/ui/card';
 import { ArrowLeft, Smartphone, Watch, Laptop, Headphones, Tablet, Camera, Speaker, Monitor } from 'lucide-react';
 
+interface ProductSpec {
+    id: string;
+    spec_attribute_id: string;
+    value: string;
+    spec_attribute?: {
+        id: string;
+        name: string;
+        unit: string | null;
+    };
+}
+
 interface Product {
     id: string;
     name: string;
@@ -49,6 +60,7 @@ interface Product {
         id: string;
         name: string;
     };
+    specs?: ProductSpec[];
     created_at: string;
 }
 
@@ -57,13 +69,20 @@ interface Category {
     name: string;
 }
 
+interface SpecAttribute {
+    id: string;
+    name: string;
+    unit: string | null;
+}
+
 interface Props {
     products: Product[] | null;
     categories: Category[];
     selectedCategoryId?: string;
+    specAttributes: SpecAttribute[];
 }
 
-export default function Dashboard({ products, categories, selectedCategoryId }: Props) {
+export default function Dashboard({ products, categories, selectedCategoryId, specAttributes }: Props) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -82,6 +101,13 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
         return Smartphone; // default
     };
 
+
+
+    const initialSpecs = specAttributes.reduce((acc, attr) => {
+        acc[attr.id] = '';
+        return acc;
+    }, {} as Record<string, string>);
+
     const { data: addData, setData: setAddData, post: addPost, processing: addProcessing, reset: addReset } = useForm({
         name: '',
         price: '',
@@ -89,13 +115,19 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
         image_url: '',
         description: '',
         category_id: selectedCategoryId || '',
+        specs: initialSpecs,
     });
 
     useEffect(() => {
         if (selectedCategoryId) {
             setAddData('category_id', selectedCategoryId);
+            const newSpecs = specAttributes.reduce((acc, attr) => {
+                acc[attr.id] = '';
+                return acc;
+            }, {} as Record<string, string>);
+            setAddData('specs', newSpecs);
         }
-    }, [selectedCategoryId]);
+    }, [selectedCategoryId, specAttributes]);
 
     const { data: editData, setData: setEditData, patch, processing: editProcessing, reset: editReset } = useForm({
         name: '',
@@ -104,11 +136,19 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
         image_url: '',
         description: '',
         category_id: '',
+        specs: {} as Record<string, string>,
     });
 
     const handleAddSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        addPost(route('admin.products.store'), {
+        const specsArray = Object.entries(addData.specs)
+            .filter(([_, value]) => value !== '')
+            .map(([spec_attribute_id, value]) => ({ spec_attribute_id, value }));
+        
+        router.post(route('admin.products.store'), {
+            ...addData,
+            specs: specsArray,
+        }, {
             onSuccess: () => {
                 setIsAddDialogOpen(false);
                 addReset();
@@ -118,6 +158,16 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
 
     const handleEditClick = (product: Product) => {
         setSelectedProduct(product);
+        const productSpecs = (product.specs || []).reduce((acc, spec) => {
+            acc[spec.spec_attribute_id] = spec.value;
+            return acc;
+        }, {} as Record<string, string>);
+        
+        const allSpecs = specAttributes.reduce((acc, attr) => {
+            acc[attr.id] = productSpecs[attr.id] || '';
+            return acc;
+        }, {} as Record<string, string>);
+
         setEditData({
             name: product.name,
             price: product.price.toString(),
@@ -125,6 +175,7 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
             image_url: product.image_url || '',
             description: product.description || '',
             category_id: product.category_id,
+            specs: allSpecs,
         });
         setIsEditDialogOpen(true);
     };
@@ -132,7 +183,14 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
     const handleEditSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (selectedProduct) {
-            patch(route('admin.products.update', selectedProduct.id), {
+            const specsArray = Object.entries(editData.specs)
+                .filter(([_, value]) => value !== '')
+                .map(([spec_attribute_id, value]) => ({ spec_attribute_id, value }));
+            
+            router.patch(route('admin.products.update', selectedProduct.id), {
+                ...editData,
+                specs: specsArray,
+            }, {
                 onSuccess: () => {
                     setIsEditDialogOpen(false);
                     editReset();
@@ -277,6 +335,29 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
                                         rows={4}
                                     />
                                 </div>
+
+                                {specAttributes.length > 0 && (
+                                    <div className="space-y-3 pt-4 border-t">
+                                        <h3 className="font-semibold text-sm">Product Specifications</h3>
+                                        <p className="text-xs text-gray-500">Enter values with their units (e.g., "3279 mAh" or just "3279")</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {specAttributes.map((attr) => (
+                                                <div key={attr.id}>
+                                                    <Label htmlFor={`add-spec-${attr.id}`}>
+                                                        {attr.name} {attr.unit && <span className="text-gray-500">({attr.unit})</span>}
+                                                    </Label>
+                                                    <Input
+                                                        id={`add-spec-${attr.id}`}
+                                                        value={addData.specs[attr.id] || ''}
+                                                        onChange={(e) => setAddData('specs', { ...addData.specs, [attr.id]: e.target.value })}
+                                                        placeholder={attr.unit ? `e.g., 100 ${attr.unit}` : `Enter ${attr.name.toLowerCase()}`}
+                                                        className="font-mono"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-end gap-2">
                                     <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -450,6 +531,29 @@ export default function Dashboard({ products, categories, selectedCategoryId }: 
                                     rows={4}
                                 />
                             </div>
+
+                            {specAttributes.length > 0 && (
+                                <div className="space-y-3 pt-4 border-t">
+                                    <h3 className="font-semibold text-sm">Product Specifications</h3>
+                                    <p className="text-xs text-gray-500">Enter values with their units (e.g., "3279 mAh" or just "3279")</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {specAttributes.map((attr) => (
+                                            <div key={attr.id}>
+                                                <Label htmlFor={`edit-spec-${attr.id}`}>
+                                                    {attr.name} {attr.unit && <span className="text-gray-500">({attr.unit})</span>}
+                                                </Label>
+                                                <Input
+                                                    id={`edit-spec-${attr.id}`}
+                                                    value={editData.specs[attr.id] || ''}
+                                                    onChange={(e) => setEditData('specs', { ...editData.specs, [attr.id]: e.target.value })}
+                                                    placeholder={attr.unit ? `e.g., 100 ${attr.unit}` : `Enter ${attr.name.toLowerCase()}`}
+                                                    className="font-mono"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-2">
                                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
