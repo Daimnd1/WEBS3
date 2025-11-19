@@ -12,6 +12,9 @@ import { Autoplay, Mousewheel, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Category, FeaturedProduct } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { useState } from 'react';
+
+const CART_STORAGE_KEY = 'shopping_cart';
 
 interface HomeProps {
     categories: Category[];
@@ -19,6 +22,36 @@ interface HomeProps {
 }
 
 export default function Home({ categories, featuredProducts }: HomeProps) {
+    const [addedToCart, setAddedToCart] = useState<string | null>(null);
+
+    const addToCart = (product: any, event?: React.MouseEvent) => {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
+        const cart = cartJson ? JSON.parse(cartJson) : [];
+        
+        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
+        
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += 1;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: 1
+            });
+        }
+        
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        
+        setAddedToCart(product.id);
+        setTimeout(() => setAddedToCart(null), 1500);
+    };
     return (
         <>
             <Head title="Gimme Electronics - Your Tech Store" />
@@ -124,18 +157,25 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                             <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row">
                                                 <Button
                                                     size="lg"
-                                                    className="bg-indigo-500 px-4 sm:px-6 py-2 text-sm sm:text-base text-slate-100 shadow-lg hover:bg-indigo-600"
+                                                    onClick={() => addToCart(product)}
+                                                    className={`px-4 sm:px-6 py-2 text-sm sm:text-base text-slate-100 shadow-lg ${
+                                                        addedToCart === product.id
+                                                            ? 'bg-green-600 hover:bg-green-700'
+                                                            : 'bg-indigo-500 hover:bg-indigo-600'
+                                                    }`}
                                                 >
                                                     <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                                                    Add to Cart
+                                                    {addedToCart === product.id ? '✓ Added!' : 'Add to Cart'}
                                                 </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="lg"
-                                                    className="border-white bg-transparent px-4 sm:px-6 py-2 text-sm sm:text-base text-white hover:bg-white hover:text-indigo-600"
-                                                >
-                                                    Learn More
-                                                </Button>
+                                                <Link href={`/product/${product.id}`}>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="lg"
+                                                        className="border-white bg-transparent px-4 sm:px-6 py-2 text-sm sm:text-base text-white hover:bg-white hover:text-indigo-600"
+                                                    >
+                                                        Learn More
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
 
@@ -195,26 +235,24 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                 {/* Products Row - Horizontally Scrollable */}
                                 <div className="scrollbar-hide flex gap-3 sm:gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-4">
                                     {category.products.map((product) => (
-                                        <Link
+                                        <Card
                                             key={product.id}
-                                            href={`/product/${product.id}`}
+                                            className="group min-w-[220px] sm:min-w-[260px] md:min-w-[280px] border-slate-200/50 bg-white/80 transition-all duration-300 hover:shadow-lg"
                                         >
-                                            <Card
-                                                key={product.id}
-                                                className="group min-w-[220px] sm:min-w-[260px] md:min-w-[280px] border-slate-200/50 bg-white/80 transition-all duration-300 hover:shadow-lg"
-                                            >
+                                            <Link href={`/product/${product.id}`}>
                                                 <div className="relative aspect-square overflow-hidden rounded-lg bg-slate-100">
                                                     <img
                                                         src={product.image}
                                                         alt={product.name}
                                                         className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
                                                     />
-                                                    {/* Add this favorite button */}
                                                     <div className="absolute right-2 top-2">
                                                         <FavoriteButton productId={product.id} />
                                                     </div>
                                                 </div>
-                                                <CardContent className="p-3 sm:p-4 text-slate-800">
+                                            </Link>
+                                            <CardContent className="p-3 sm:p-4 text-slate-800">
+                                                <Link href={`/product/${product.id}`}>
                                                     <h3 className="mb-1.5 sm:mb-2 line-clamp-2 text-base sm:text-lg font-semibold text-slate-900">
                                                         {product.name}
                                                     </h3>
@@ -227,22 +265,31 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                                             ({product.reviews})
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex items-center justify-between mb-2">
                                                         <div>
                                                             <span className="text-lg sm:text-xl font-bold text-indigo-600">
                                                                 ${product.price}
                                                             </span>
                                                             <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm text-gray-500 line-through">
-                                                                $
-                                                                {
-                                                                    product.originalPrice
-                                                                }
+                                                                ${product.originalPrice}
                                                             </span>
                                                         </div>
                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        </Link>
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => addToCart(product, e)}
+                                                    className={`mt-2 w-full py-2 px-3 rounded-lg transition-all text-xs sm:text-sm font-medium flex items-center justify-center gap-2 ${
+                                                        addedToCart === product.id
+                                                            ? 'bg-green-600 text-white'
+                                                            : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                                                    }`}
+                                                >
+                                                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                    {addedToCart === product.id ? '✓ Added!' : 'Add to Cart'}
+                                                </button>
+                                            </CardContent>
+                                        </Card>
                                     ))}
                                 </div>
                             </div>

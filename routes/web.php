@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -14,12 +15,15 @@ Route::get('/products', [ProductController::class, 'index'])->name('products');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
 
 Route::get('/cart', function () {
-    return Inertia::render('CartVisualizationDemo');
+    return Inertia::render('Cart');
 })->name('cart');
 
 Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorites');
 
 
+
+// Checkout route
+Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('auth')->name('checkout');
 
 // Profile routes - protected
 Route::middleware('auth')->group(function () {

@@ -13,8 +13,11 @@ import {
     SortAsc,
     SortDesc,
     Star,
+    ShoppingCart,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+
+const CART_STORAGE_KEY = 'shopping_cart';
 
 interface Product {
     id: string;
@@ -49,6 +52,36 @@ export default function Products({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [addedToCart, setAddedToCart] = useState<string | null>(null);
+
+    // Add to cart function
+    const addToCart = (product: Product, event: React.MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
+        const cart = cartJson ? JSON.parse(cartJson) : [];
+        
+        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
+        
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += 1;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: 1
+            });
+        }
+        
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        
+        // Show success state
+        setAddedToCart(product.id);
+        setTimeout(() => setAddedToCart(null), 1500);
+    };
 
     useEffect(() => {
         if (initialCategory) {
@@ -326,6 +359,18 @@ export default function Products({
                                                             </div>
                                                         </div>
                                                     </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => addToCart(product, e)}
+                                                        className={`mt-3 w-full py-2 px-4 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 ${
+                                                            addedToCart === product.id
+                                                                ? 'bg-green-600 text-white'
+                                                                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                                                        }`}
+                                                    >
+                                                        <ShoppingCart className="h-4 w-4" />
+                                                        {addedToCart === product.id ? '✓ Added!' : 'Add to Cart'}
+                                                    </button>
                                                 </CardContent>
                                             </Card>
                                         ))}
