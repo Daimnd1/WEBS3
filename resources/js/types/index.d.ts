@@ -58,6 +58,15 @@ export interface Product {
     category: string;
     description?: string;
     specs?: ProductSpec[];
+    reviews_list?: Review[];
+}
+
+export interface Review {
+    id: string;
+    rating: number;
+    comment: string;
+    user_name: string;
+    created_at: string;
 }
 
 export interface ProductSpec {

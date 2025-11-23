@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,6 +25,9 @@ Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorit
 
 // Checkout route
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('auth')->name('checkout');
+
+// Review routes - protected
+Route::post('/reviews', [ReviewController::class, 'store'])->middleware('auth')->name('reviews.store');
 
 // Profile routes - protected
 Route::middleware('auth')->group(function () {
