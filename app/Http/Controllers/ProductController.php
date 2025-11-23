@@ -55,12 +55,32 @@ class ProductController extends Controller
 
     public function show(string $id): Response
     {
-        $product = Product::with(['category', 'specs.specAttribute'])->findOrFail($id);
+        $product = Product::with([
+            'category',
+            'specs.specAttribute',
+            'reviews' => function ($query) {
+                $query->with('user')->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id);
 
         $specs = $product->specs->map(function ($spec) {
             return [
                 'name' => $spec->specAttribute->name,
                 'value' => $spec->value,
+            ];
+        });
+
+        $reviewsCollection = $product->relationLoaded('reviews') 
+            ? $product->getRelation('reviews') 
+            : $product->reviews()->with('user')->orderBy('created_at', 'desc')->get();
+        
+        $reviews = $reviewsCollection->map(function ($review) {
+            return [
+                'id' => $review->id,
+                'rating' => $review->rating,
+                'comment' => $review->comment,
+                'user_name' => $review->user->name ?? 'Anonymous',
+                'created_at' => $review->created_at->format('M d, Y'),
             ];
         });
 
@@ -76,6 +96,7 @@ class ProductController extends Controller
                 'description' => $product->description ?? '',
                 'specs' => $specs,
                 'category' => strtolower($product->category->name),
+                'reviews_list' => $reviews,
             ],
         ]);
     }

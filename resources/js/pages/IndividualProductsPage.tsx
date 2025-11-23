@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Star } from 'lucide-react';
 import type { Product } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import ReviewForm from '@/components/ReviewForm';
 import { useState } from 'react';
 
 const CART_STORAGE_KEY = 'shopping_cart';
@@ -13,6 +14,7 @@ interface ProductPageProps {
 export default function ProductPage({ product }: ProductPageProps) {
     const [quantity, setQuantity] = useState<number>(1);
     const [addedToCart, setAddedToCart] = useState<boolean>(false);
+    const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
 
     const addToCart = () => {
         const cartJson = localStorage.getItem(CART_STORAGE_KEY);
@@ -48,7 +50,7 @@ export default function ProductPage({ product }: ProductPageProps) {
             <section className="grid justify-center bg-slate-100 p-4 md:p-8 lg:p-12">
                 <article className="mt-16 grid h-fit max-w-3xl rounded-xl bg-slate-50 p-6 pb-12 text-black shadow-2xl lg:max-w-6xl lg:grid-cols-2">
                     <section>
-                        <div className="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm">
+                        <div className="relative overflow-hidden mr-4 rounded-2xl bg-white p-8 shadow-sm">
                             <img
                                 src={product.image}
                                 alt={product.name}
@@ -132,6 +134,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                             <div className="flex items-center gap-4 mt-4"> 
                                 <button
                                     type="button"
+                                    onClick={() => setShowReviewForm(true)}
                                     className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
                                 >
                                     Add review
@@ -153,9 +156,47 @@ export default function ProductPage({ product }: ProductPageProps) {
                         <p className="whitespace-pre-line text-slate-600">
                         {product.description || 'No description available for this product.'}</p>
                     </article>
+                    <hr className='col-span-full border-grey mt-2'></hr>
+                    <article className='col-span-full mt-2'>
+                        <h2 className="text-2xl font-semibold text-slate-700 mb-4">
+                            Reviews
+                        </h2>
+                        {product.reviews_list && product.reviews_list.length > 0 ? (
+                            <div className="space-y-4">
+                                {product.reviews_list.map((review) => (
+                                    <div key={review.id} className="border-b border-slate-200 pb-4 last:border-b-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="font-semibold text-slate-800">{review.user_name}</span>
+                                            <div className="flex items-center gap-1">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={star}
+                                                        className={`h-4 w-4 ${
+                                                            star <= review.rating
+                                                                ? 'fill-amber-400 text-amber-400'
+                                                                : 'text-gray-300'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-sm text-slate-500">{review.created_at}</span>
+                                        </div>
+                                        <p className="text-slate-600 whitespace-pre-line">{review.comment}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-slate-500">No reviews yet. Be the first to review this product!</p>
+                        )}
+                    </article>
                 </article>
             </section>
-            
+            <ReviewForm
+                show={showReviewForm}
+                onClose={() => setShowReviewForm(false)}
+                productId={product.id}
+                productName={product.name}
+            />
         </AppLayout>
     );
 }
