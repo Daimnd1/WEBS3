@@ -12,7 +12,8 @@ class ProductController extends Controller
     public function index(?string $category = null): Response
     {
         // Fetch all categories with product counts
-        $categories = Category::withCount('products')
+        $categories = Category::select('id', 'name')
+            ->withCount('products')
             ->orderBy('name')
             ->get()
             ->map(function ($cat) {
@@ -25,7 +26,8 @@ class ProductController extends Controller
             });
 
         // Build product query
-        $query = Product::with('category');
+        $query = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
+            ->with('category:id,name');
 
         if ($category && $category !== 'all') {
             $query->whereHas('category', function ($q) use ($category) {
@@ -40,8 +42,8 @@ class ProductController extends Controller
                 'price' => $product->price,
                 'originalPrice' => $product->original_price,
                 'image' => $product->image_url,
-                'rating' => $product->rating ?? 4.5,
-                'reviews' => $product->reviews ?? rand(50, 200),
+                'rating' => $product->rating,
+                'reviews' => $product->reviews,
                 'category' => strtolower($product->category->name),
             ];
         });
@@ -55,12 +57,20 @@ class ProductController extends Controller
 
     public function show(string $id): Response
     {
-        $product = Product::with(['category', 'specs.specAttribute'])->findOrFail($id);
+        $product = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'description', 'category_id')
+            ->with([
+                'category:id,name',
+                'specs' => function ($query) {
+                    $query->select('id', 'product_id', 'spec_attribute_id', 'value');
+                },
+                'specs.specAttribute:id,name,unit'
+            ])
+            ->findOrFail($id);
 
         $specs = $product->specs->map(function ($spec) {
             return [
                 'name' => $spec->specAttribute->name,
-                'value' => $spec->value,
+                'value' => $spec->value . ($spec->specAttribute->unit ? ' ' . $spec->specAttribute->unit : ''),
             ];
         });
 
@@ -71,8 +81,8 @@ class ProductController extends Controller
                 'price' => $product->price,
                 'originalPrice' => $product->original_price,
                 'image' => $product->image_url,
-                'rating' => $product->rating ?? 4.5,
-                'reviews' => $product->reviews ?? rand(50, 200),
+                'rating' => $product->rating,
+                'reviews' => $product->reviews,
                 'description' => $product->description ?? '',
                 'specs' => $specs,
                 'category' => strtolower($product->category->name),
@@ -82,9 +92,11 @@ class ProductController extends Controller
 
     public function home(): Response
     {
-        $categories = Category::with(['products' => function ($query) {
-            $query->limit(8);
-        }])->get();
+        $categories = Category::select('id', 'name')
+            ->with(['products' => function ($query) {
+                $query->select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
+                    ->limit(8);
+            }])->get();
 
         $formattedCategories = $categories->map(function ($category) {
             return [
@@ -96,15 +108,15 @@ class ProductController extends Controller
                         'price' => $product->price,
                         'originalPrice' => $product->original_price,
                         'image' => $product->image_url,
-                        'rating' => 4.5,
-                        'reviews' => rand(50, 200),
+                        'rating' => $product->rating,
+                        'reviews' => $product->reviews,
                         'category' => strtolower($category->name),
                     ];
                 }),
             ];
         });
 
-        $featuredProducts = Product::with('category')
+        $featuredProducts = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'description')
             ->limit(3)
             ->get()
             ->map(function ($product) {
@@ -114,7 +126,7 @@ class ProductController extends Controller
                     'price' => $product->price,
                     'originalPrice' => $product->original_price,
                     'image' => $product->image_url,
-                    'rating' => 4.5,
+                    'rating' => $product->rating,
                     'badge' => 'Featured',
                     'description' => $product->description ?? '',
                 ];
@@ -128,7 +140,11 @@ class ProductController extends Controller
 
     public function favorites(): Response
     {
-        $products = Product::with('category')
+        // Only load first 100 products for performance
+        // Frontend can filter based on client-side favorites
+        $products = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
+            ->with('category:id,name')
+            ->limit(100)
             ->get()
             ->map(function ($product) {
                 return [
@@ -137,8 +153,8 @@ class ProductController extends Controller
                     'price' => $product->price,
                     'originalPrice' => $product->original_price,
                     'image' => $product->image_url,
-                    'rating' => $product->rating ?? 4.5,
-                    'reviews' => $product->reviews ?? rand(50, 200),
+                    'rating' => $product->rating,
+                    'reviews' => $product->reviews,
                     'category' => strtolower($product->category->name),
                 ];
             });

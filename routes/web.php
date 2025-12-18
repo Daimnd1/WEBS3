@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
 // Admin routes - protected by admin middleware
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/products/{product}', [App\Http\Controllers\AdminController::class, 'getProduct'])->name('admin.products.show');
     Route::post('/products', [App\Http\Controllers\AdminController::class, 'storeProduct'])->name('admin.products.store');
     Route::patch('/products/{product}', [App\Http\Controllers\AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::delete('/products/{product}', [App\Http\Controllers\AdminController::class, 'destroyProduct'])->name('admin.products.destroy');
