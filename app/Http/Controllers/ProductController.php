@@ -11,31 +11,22 @@ class ProductController extends Controller
 {
     public function index(?string $category = null): Response
     {
-        // Fetch all categories with product counts
-        $categories = Category::select('id', 'name')
-            ->withCount('products')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($cat) {
-                return [
-                    'id' => $cat->id,
-                    'name' => $cat->name,
-                    'slug' => strtolower($cat->name),
-                    'productCount' => $cat->products_count,
-                ];
-            });
-
-        // Build product query
+        // Build product query with optimized filtering
         $query = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
             ->with('category:id,name');
 
+        // Optimize category filtering: direct WHERE instead of slow whereHas subquery
         if ($category && $category !== 'all') {
-            $query->whereHas('category', function ($q) use ($category) {
-                $q->where('name', 'ilike', $category);
-            });
+            // Get category ID from cache (shared categories)
+            $categories = cache()->get('categories_with_counts');
+            $categoryData = collect($categories)->firstWhere('slug', $category);
+            
+            if ($categoryData) {
+                $query->where('category_id', $categoryData['id']);
+            }
         }
 
-        $products = $query->get()->map(function ($product) {
+        $products = $query->paginate(12)->through(function ($product) {
             return [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -51,7 +42,7 @@ class ProductController extends Controller
         return Inertia::render('Products', [
             'category' => $category,
             'products' => $products,
-            'categories' => $categories,
+            // Categories now shared globally via HandleInertiaRequests
         ]);
     }
 
@@ -140,13 +131,35 @@ class ProductController extends Controller
 
     public function favorites(): Response
     {
-        // Only load first 100 products for performance
-        // Frontend can filter based on client-side favorites
+        // Get favorite IDs from request
+        $favoriteIds = request()->input('favorites', []);
+
+        // If no favorites, return empty result
+        if (empty($favoriteIds)) {
+            return Inertia::render('favorites', [
+                'products' => [],
+            ]);
+        }
+
+        // Filter out invalid UUIDs (handle mixed integer/UUID data from old localStorage)
+        $validFavoriteIds = array_filter($favoriteIds, function ($id) {
+            // UUID v4 format: 8-4-4-4-12 hex characters
+            return is_string($id) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id);
+        });
+
+        // If no valid UUIDs after filtering, return empty result
+        if (empty($validFavoriteIds)) {
+            return Inertia::render('favorites', [
+                'products' => [],
+            ]);
+        }
+
+        // Only fetch products that are in the favorites list
         $products = Product::select('id', 'name', 'price', 'original_price', 'image_url', 'category_id')
             ->with('category:id,name')
-            ->limit(100)
-            ->get()
-            ->map(function ($product) {
+            ->whereIn('id', $validFavoriteIds)
+            ->paginate(12)
+            ->through(function ($product) {
                 return [
                     'id' => $product->id,
                     'name' => $product->name,

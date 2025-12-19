@@ -26,8 +26,8 @@ class AdminController extends Controller
                 ->with('category:id,name')
                 ->where('category_id', $selectedCategoryId)
                 ->latest()
-                ->limit(100)
-                ->get();
+                ->paginate(20)
+                ->appends(['category' => $selectedCategoryId]); // Preserve category in pagination links
             
             $category = Category::select('id')
                 ->with('specAttributes:id,name,unit')

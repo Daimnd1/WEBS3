@@ -2,10 +2,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { Pagination } from '@/components/Pagination';
 import { useFavorites } from '@/lib/FavoritesProvider';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Heart, Star } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface Product {
     id: string;
@@ -19,24 +21,44 @@ interface Product {
     description?: string;
 }
 
+interface PaginationData {
+    data: Product[];
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
+}
+
 interface FavoritesProps {
-    products: Product[]; // ✅ Accept products from backend
+    products: PaginationData | Product[];
 }
 
 export default function Favorites({ products }: FavoritesProps) {
     const { ids } = useFavorites();
 
-    console.log('🟣 Favorites page - All products:', products.length); // ✅ DEBUG
-    console.log('🟣 Favorites page - Favorite IDs:', ids); // ✅ DEBUG
+    // Reload page with favorite IDs when they change
+    useEffect(() => {
+        router.reload({
+            data: { favorites: ids },
+            only: ['products'],
+        });
+    }, [ids]);
 
-    // Filter products by favorite IDs
-    const favoriteProducts = products.filter((product) => {
-        const isFav = ids.includes(product.id);
-        console.log(`🟣 Product ${product.id} is favorite:`, isFav); // ✅ DEBUG
-        return isFav;
-    });
-
-    console.log('🟣 Filtered favorite products:', favoriteProducts.length); // ✅ DEBUG
+    // Check if products is paginated or a simple array
+    const isPaginated = products && typeof products === 'object' && 'data' in products;
+    const favoriteProducts = isPaginated ? (products as PaginationData).data : (products as Product[] || [])
 
     return (
         <>
@@ -132,6 +154,9 @@ export default function Favorites({ products }: FavoritesProps) {
                                 ))}
                             </div>
                         )}
+                        
+                        {/* Pagination */}
+                        {isPaginated && <Pagination data={products as PaginationData} />}
                     </div>
                 </section>
             </AppLayout>

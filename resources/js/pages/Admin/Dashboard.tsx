@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Pagination } from '@/components/Pagination';
 import {
     Table,
     TableBody,
@@ -75,8 +76,28 @@ interface SpecAttribute {
     unit: string | null;
 }
 
+interface PaginationData {
+    data: Product[];
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
+}
+
 interface Props {
-    products: Product[] | null;
+    products: PaginationData | null;
     categories: Category[];
     selectedCategoryId?: string;
     specAttributes: SpecAttribute[];
@@ -386,7 +407,7 @@ export default function Dashboard({ products, categories, selectedCategoryId, sp
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {!products || products.length === 0 ? (
+                                    {!products || !products.data || products.data.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-12">
                                                 <div className="flex flex-col items-center gap-2">
@@ -397,7 +418,7 @@ export default function Dashboard({ products, categories, selectedCategoryId, sp
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        products.map((product) => (
+                                        products.data.map((product) => (
                                             <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
                                                 <TableCell>
                                                     {product.image_url ? (
@@ -452,6 +473,9 @@ export default function Dashboard({ products, categories, selectedCategoryId, sp
                                 </TableBody>
                             </Table>
                         </div>
+
+                        {/* Pagination */}
+                        {products && <Pagination data={products} />}
 
                         {/* Edit Dialog */}
                         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

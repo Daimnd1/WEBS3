@@ -35,6 +35,20 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'isAdmin' => $request->user()?->isAdmin() ?? false,
             ],
+            'sharedCategories' => cache()->remember('categories_with_counts', 3600, function () {
+                return \App\Models\Category::select('id', 'name')
+                    ->withCount('products')
+                    ->orderBy('name')
+                    ->get()
+                    ->map(function ($cat) {
+                        return [
+                            'id' => $cat->id,
+                            'name' => $cat->name,
+                            'slug' => strtolower($cat->name),
+                            'productCount' => $cat->products_count,
+                        ];
+                    });
+            }),
         ];
     }
 }
