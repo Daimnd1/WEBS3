@@ -12,7 +12,10 @@ import { Autoplay, Mousewheel, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Category, FeaturedProduct } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const CART_STORAGE_KEY = 'shopping_cart';
 
@@ -23,6 +26,87 @@ interface HomeProps {
 
 export default function Home({ categories, featuredProducts }: HomeProps) {
     const [addedToCart, setAddedToCart] = useState<string | null>(null);
+    const heroRef = useRef<HTMLElement>(null);
+    const categoriesRef = useRef<HTMLElement>(null);
+
+    // Hero section entrance animations
+    useGSAP(() => {
+        const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+        tl.from('.hero-badge', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+        })
+        .from('.hero-title', {
+            opacity: 0,
+            y: 40,
+            duration: 0.7,
+        }, '-=0.3')
+        .from('.hero-subtitle', {
+            opacity: 0,
+            y: 30,
+            duration: 0.6,
+        }, '-=0.4')
+        .from('.hero-description', {
+            opacity: 0,
+            y: 25,
+            duration: 0.5,
+        }, '-=0.3')
+        .from('.hero-pricing', {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+        }, '-=0.2')
+        .from('.hero-buttons', {
+            opacity: 0,
+            y: 25,
+            duration: 0.5,
+        }, '-=0.2')
+        .from('.hero-image', {
+            opacity: 0,
+            scale: 0.9,
+            duration: 0.8,
+        }, '-=0.6');
+    }, { scope: heroRef });
+
+    // Category sections scroll animations
+    useGSAP(() => {
+        // Animate each category section when it enters viewport
+        gsap.utils.toArray<HTMLElement>('.category-section').forEach((section) => {
+            const header = section.querySelector('.category-header');
+            const scroller = section.querySelector('.category-scroller');
+
+            // Create a timeline for each category
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 85%',
+                    once: true,
+                },
+            });
+
+            // Animate header first
+            if (header) {
+                tl.from(header, {
+                    opacity: 0,
+                    x: -40,
+                    duration: 0.6,
+                    ease: 'power2.out',
+                });
+            }
+
+            // Animate the entire scroller container
+            if (scroller) {
+                tl.from(scroller, {
+                    opacity: 0,
+                    y: 30,
+                    duration: 0.6,
+                    ease: 'power2.out',
+                }, '-=0.3');
+            }
+        });
+    }, { scope: categoriesRef });
 
     const addToCart = (product: any, event?: React.MouseEvent) => {
         if (event) {
@@ -57,7 +141,7 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
             <Head title="Gimme Electronics - Your Tech Store" />
             <AppLayout>
                 {/* Hero Banner Section */}
-                <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-300 px-2 sm:px-4 pt-20 md:pt-32">
+                <section ref={heroRef} className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-300 px-2 sm:px-4 pt-20 md:pt-32">
                     <div className="mx-auto max-w-6xl py-8 sm:py-12">
                         <Swiper
                             modules={[
@@ -103,23 +187,23 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                         {/* Left Side - Text Content */}
                                         <div className="space-y-3 sm:space-y-4 md:space-y-6 px-4 sm:px-8 lg:px-16">
                                             <div className="space-y-2 sm:space-y-3">
-                                                <Badge className="bg-amber-400 text-xs sm:text-sm font-medium text-black hover:bg-amber-500">
+                                                <Badge className="hero-badge bg-amber-400 text-xs sm:text-sm font-medium text-black hover:bg-amber-500">
                                                     {product.badge} •{' '}
                                                     {product.highlight}
                                                 </Badge>
-                                                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight font-bold text-slate-100">
+                                                <h1 className="hero-title text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight font-bold text-slate-100">
                                                     {product.catchyText}
                                                 </h1>
-                                                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-200">
+                                                <h2 className="hero-subtitle text-lg sm:text-xl md:text-2xl font-semibold text-slate-200">
                                                     {product.name}
                                                 </h2>
-                                                <p className="text-sm sm:text-base md:text-lg leading-relaxed text-slate-200">
+                                                <p className="hero-description text-sm sm:text-base md:text-lg leading-relaxed text-slate-200">
                                                     {product.description}
                                                 </p>
                                             </div>
 
                                             {/* Rating and Price */}
-                                            <div className="space-y-2 sm:space-y-3">
+                                            <div className="hero-pricing space-y-2 sm:space-y-3">
                                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                                     <div className="flex items-center">
                                                         <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
@@ -154,7 +238,7 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row">
+                                            <div className="hero-buttons flex flex-col gap-2 sm:gap-3 sm:flex-row">
                                                 <Button
                                                     size="lg"
                                                     onClick={() => addToCart(product)}
@@ -180,7 +264,7 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                         </div>
 
                                         {/* Right Side - Product Image */}
-                                        <div className="relative hidden lg:flex justify-center">
+                                        <div className="hero-image relative hidden lg:flex justify-center">
                                             <div className="group relative">
                                                 <img
                                                     src={product.image}
@@ -203,12 +287,12 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                 </section>
 
                 {/* Product Categories Section */}
-                <section className="bg-gray-50 px-2 sm:px-4 py-8 sm:py-12 md:py-16">
+                <section ref={categoriesRef} className="bg-gray-50 px-2 sm:px-4 py-8 sm:py-12 md:py-16">
                     <div className="mx-auto max-w-7xl">
                         {categories.map((category) => (
-                            <div key={category.name} className="mb-8 sm:mb-12 md:mb-16">
+                            <div key={category.name} className="category-section mb-8 sm:mb-12 md:mb-16">
                                 {/* Category Header */}
-                                <div className="mb-4 sm:mb-6 md:mb-8 flex items-center justify-between">
+                                <div className="category-header mb-4 sm:mb-6 md:mb-8 flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <div className="rounded-lg bg-indigo-100 p-1.5 sm:p-2 text-indigo-600">
                                             {category.icon}
@@ -233,7 +317,7 @@ export default function Home({ categories, featuredProducts }: HomeProps) {
                                 </div>
 
                                 {/* Products Row - Horizontally Scrollable */}
-                                <div className="scrollbar-hide flex gap-3 sm:gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-4">
+                                <div className="category-scroller scrollbar-hide flex gap-3 sm:gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-4">
                                     {category.products.map((product) => (
                                         <Card
                                             key={product.id}

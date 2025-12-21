@@ -1,21 +1,24 @@
+import { FavoriteButton } from '@/components/FavoriteButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { FavoriteButton } from '@/components/FavoriteButton';
-import { getCategoryIcon } from '@/lib/categoryIcons';
 import AppLayout from '@/layouts/app-layout';
+import { getCategoryIcon } from '@/lib/categoryIcons';
+import { useGSAP } from '@gsap/react';
 import { Head, Link } from '@inertiajs/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
     Filter,
     Grid3X3,
     Search,
+    ShoppingCart,
     SortAsc,
     SortDesc,
     Star,
-    ShoppingCart,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const CART_STORAGE_KEY = 'shopping_cart';
 
@@ -43,27 +46,76 @@ interface ProductsPageProps {
     categories: Category[];
 }
 
-export default function Products({ 
-    category: initialCategory, 
+export default function Products({
+    category: initialCategory,
     products: allProducts,
-    categories: dbCategories 
+    categories: dbCategories,
 }: ProductsPageProps) {
-    const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+    const [selectedCategory, setSelectedCategory] = useState<string>(
+        initialCategory || 'all',
+    );
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [addedToCart, setAddedToCart] = useState<string | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Page entrance animations
+    useGSAP(
+        () => {
+            const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+            // Header entrance
+            tl.from('.products-header', {
+                opacity: 0,
+                y: -30,
+                duration: 0.6,
+            })
+                // Sidebar slide in
+                .from(
+                    '.products-sidebar',
+                    {
+                        opacity: 0,
+                        x: -40,
+                        duration: 0.6,
+                    },
+                    '-=0.3',
+                );
+
+            // Set initial state for product cards
+            gsap.set('.product-grid-card', { opacity: 0, y: 40 });
+
+            // Product grid scroll animation
+            ScrollTrigger.batch('.product-grid-card', {
+                onEnter: (elements) => {
+                    gsap.to(elements, {
+                        opacity: 1,
+                        y: 0,
+                        stagger: 0.08,
+                        duration: 0.5,
+                        ease: 'power2.inOut',
+                    });
+                },
+                start: 'top 85%',
+                once: true,
+            });
+        },
+        { scope: containerRef },
+    );
 
     // Add to cart function
     const addToCart = (product: Product, event: React.MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
-        
+
         const cartJson = localStorage.getItem(CART_STORAGE_KEY);
         const cart = cartJson ? JSON.parse(cartJson) : [];
-        
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
-        
+
+        const existingItemIndex = cart.findIndex(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (item: any) => item.id === product.id,
+        );
+
         if (existingItemIndex > -1) {
             cart[existingItemIndex].quantity += 1;
         } else {
@@ -72,12 +124,12 @@ export default function Products({
                 name: product.name,
                 price: product.price,
                 image: product.image,
-                quantity: 1
+                quantity: 1,
             });
         }
-        
+
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        
+
         // Show success state
         setAddedToCart(product.id);
         setTimeout(() => setAddedToCart(null), 1500);
@@ -131,13 +183,15 @@ export default function Products({
 
         // Filter by category
         if (selectedCategory !== 'all') {
-            filtered = filtered.filter((product) => product.category === selectedCategory);
+            filtered = filtered.filter(
+                (product) => product.category === selectedCategory,
+            );
         }
 
         // Filter by search query
         if (searchQuery) {
             filtered = filtered.filter((product) =>
-                product.name.toLowerCase().includes(searchQuery.toLowerCase())
+                product.name.toLowerCase().includes(searchQuery.toLowerCase()),
             );
         }
 
@@ -194,192 +248,252 @@ export default function Products({
         <>
             <Head title={`${getCurrentCategoryName()} - Gimme Electronics`} />
             <AppLayout>
-                {/* Header Section */}
-                <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-3 sm:px-4 pt-20 sm:pt-32 md:pt-40 lg:pt-48 pb-6 sm:pb-8">
-                    <div className="mx-auto max-w-7xl">
-                        <div className="text-center text-white">
-                            <h1 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold">
-                                {getCurrentCategoryName()}
-                            </h1>
-                            <p className="mb-4 sm:mb-6 text-sm sm:text-base md:text-lg lg:text-xl text-blue-100">
-                                Discover amazing tech products at unbeatable prices
-                            </p>
-                            <div className="flex justify-center">
-                                <Badge className="bg-amber-400 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-black">
-                                    {filteredProducts.length} Products Available
-                                </Badge>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Filters and Controls */}
-                <section className="border-b border-slate-200/50 bg-white px-3 sm:px-4 py-4 sm:py-6">
-                    <div className="mx-auto max-w-7xl">
-                        <div className="flex flex-col items-start justify-between gap-3 sm:gap-4 md:gap-6 lg:flex-row lg:items-center">
-                            <div className="relative w-full max-w-md flex-1">
-                                <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 transform text-gray-400" />
-                                <Input
-                                    type="text"
-                                    placeholder="Search products..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="border-slate-200/50 bg-white/60 pl-9 sm:pl-10 text-sm sm:text-base text-slate-700 backdrop-blur-sm transition-all focus:bg-white/80"
-                                />
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 w-full lg:w-auto">
-                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
-                                        Sort by:
-                                    </label>
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value)}
-                                        className="h-7 sm:h-8 rounded-md bg-white/60 px-2 sm:px-3 py-1 text-xs sm:text-sm text-slate-700 focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                    >
-                                        <option value="name">Name</option>
-                                        <option value="price">Price</option>
-                                        <option value="rating">Rating</option>
-                                        <option value="reviews">Reviews</option>
-                                    </select>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                                    >
-                                        {sortOrder === 'asc' ? (
-                                            <SortAsc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                        ) : (
-                                            <SortDesc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                        )}
-                                    </Button>
+                <div ref={containerRef}>
+                    {/* Header Section */}
+                    <section className="products-header bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 px-3 pt-20 pb-6 sm:px-4 sm:pt-32 sm:pb-8 md:pt-40 lg:pt-48">
+                        <div className="mx-auto max-w-7xl">
+                            <div className="text-center text-white">
+                                <h1 className="mb-3 text-2xl font-bold sm:mb-4 sm:text-3xl md:text-4xl lg:text-5xl">
+                                    {getCurrentCategoryName()}
+                                </h1>
+                                <p className="mb-4 text-sm text-blue-100 sm:mb-6 sm:text-base md:text-lg lg:text-xl">
+                                    Discover amazing tech products at unbeatable
+                                    prices
+                                </p>
+                                <div className="flex justify-center">
+                                    <Badge className="bg-amber-400 px-3 py-1.5 text-xs text-black sm:px-4 sm:py-2 sm:text-sm">
+                                        {filteredProducts.length} Products
+                                        Available
+                                    </Badge>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                {/* Main Content */}
-                <section className="bg-gray-50 px-3 sm:px-4 py-4 sm:py-6 md:py-8">
-                    <div className="mx-auto max-w-7xl">
-                        <div className="flex flex-col gap-4 sm:gap-6 md:gap-8 lg:flex-row">
-                            {/* Sidebar - Categories */}
-                            <div className="flex-shrink-0 lg:w-64">
-                                <div className="top-24 rounded-xl border border-slate-200 bg-white p-4 sm:p-6 text-slate-700 shadow-sm">
-                                    <h3 className="mb-3 sm:mb-4 flex items-center gap-2 text-base sm:text-lg font-semibold">
-                                        <Filter className="h-5 w-5" />
-                                        Categories
-                                    </h3>
-                                    <div className="space-y-1.5 sm:space-y-2">
-                                        {categories.map((category) => (
-                                            <button
-                                                key={category.id}
-                                                onClick={() => setSelectedCategory(category.id)}
-                                                className={`flex w-full items-center justify-between rounded-xl p-2 sm:p-3 text-left transition-colors ${
-                                                    selectedCategory === category.id
-                                                        ? 'bg-indigo-50 text-indigo-600'
-                                                        : 'hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                <div className="flex items-center gap-2 sm:gap-3">
-                                                    {category.icon}
-                                                    <span className="text-sm sm:text-base font-medium">
-                                                        {category.name}
-                                                    </span>
-                                                </div>
-                                                <Badge variant="secondary" className="text-xs">
-                                                    {category.count}
-                                                </Badge>
-                                            </button>
-                                        ))}
+                    {/* Filters and Controls */}
+                    <section className="border-b border-slate-200/50 bg-white px-3 py-4 sm:px-4 sm:py-6">
+                        <div className="mx-auto max-w-7xl">
+                            <div className="flex flex-col items-start justify-between gap-3 sm:gap-4 md:gap-6 lg:flex-row lg:items-center">
+                                <div className="relative w-full max-w-md flex-1">
+                                    <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 transform text-gray-400 sm:h-4 sm:w-4" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Search products..."
+                                        value={searchQuery}
+                                        onChange={(e) =>
+                                            setSearchQuery(e.target.value)
+                                        }
+                                        className="border-slate-200/50 bg-white/60 pl-9 text-sm text-slate-700 backdrop-blur-sm transition-all focus:bg-white/80 sm:pl-10 sm:text-base"
+                                    />
+                                </div>
+
+                                <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 md:gap-4 lg:w-auto">
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <label className="text-xs font-medium whitespace-nowrap text-gray-700 sm:text-sm">
+                                            Sort by:
+                                        </label>
+                                        <select
+                                            value={sortBy}
+                                            onChange={(e) =>
+                                                setSortBy(e.target.value)
+                                            }
+                                            className="h-7 rounded-md bg-white/60 px-2 py-1 text-xs text-slate-700 focus:bg-white/80 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:h-8 sm:px-3 sm:text-sm"
+                                        >
+                                            <option value="name">Name</option>
+                                            <option value="price">Price</option>
+                                            <option value="rating">
+                                                Rating
+                                            </option>
+                                            <option value="reviews">
+                                                Reviews
+                                            </option>
+                                        </select>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 sm:h-8 sm:w-8"
+                                            onClick={() =>
+                                                setSortOrder(
+                                                    sortOrder === 'asc'
+                                                        ? 'desc'
+                                                        : 'asc',
+                                                )
+                                            }
+                                        >
+                                            {sortOrder === 'asc' ? (
+                                                <SortAsc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                            ) : (
+                                                <SortDesc className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                            )}
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </section>
 
-                            {/* Products Grid */}
-                            <div className="flex-1">
-                                {filteredProducts.length === 0 ? (
-                                    <div className="py-8 sm:py-12 text-center">
-                                        <div className="mb-3 sm:mb-4 text-gray-400">
-                                            <Search className="mx-auto h-12 w-12 sm:h-16 sm:w-16" />
-                                        </div>
-                                        <h3 className="mb-1.5 sm:mb-2 text-lg sm:text-xl font-semibold text-gray-600">
-                                            No products found
+                    {/* Main Content */}
+                    <section className="bg-gray-50 px-3 py-4 sm:px-4 sm:py-6 md:py-8">
+                        <div className="mx-auto max-w-7xl">
+                            <div className="flex flex-col gap-4 sm:gap-6 md:gap-8 lg:flex-row">
+                                {/* Sidebar - Categories */}
+                                <div className="products-sidebar flex-shrink-0 lg:w-64">
+                                    <div className="top-24 rounded-xl border border-slate-200 bg-white p-4 text-slate-700 shadow-sm sm:p-6">
+                                        <h3 className="mb-3 flex items-center gap-2 text-base font-semibold sm:mb-4 sm:text-lg">
+                                            <Filter className="h-5 w-5" />
+                                            Categories
                                         </h3>
-                                        <p className="text-sm sm:text-base text-gray-500">
-                                            Try adjusting your search or filters
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-3 xl:grid-cols-4">
-                                        {filteredProducts.map((product) => (
-                                            <Card
-                                                key={product.id}
-                                                className="group overflow-hidden transition-all hover:shadow-xl"
-                                            >
-                                                <CardContent className="p-3 sm:p-4">
-                                                    <Link href={`/product/${product.id}`}>
-                                                        <div className="relative mb-3 sm:mb-4 aspect-square overflow-hidden rounded-lg bg-slate-100">
-                                                            <img
-                                                                src={product.image}
-                                                                alt={product.name}
-                                                                className="h-full w-full object-contain p-2 sm:p-4 transition-transform group-hover:scale-105"
-                                                            />
-                                                            <div className="absolute right-2 top-2">
-                                                                <FavoriteButton productId={product.id} />
-                                                            </div>
-                                                        </div>
-
-                                                        <h3 className="mb-1.5 sm:mb-2 line-clamp-2 text-xs sm:text-sm font-semibold text-slate-800">
-                                                            {product.name}
-                                                        </h3>
-
-                                                        <div className="mb-2 sm:mb-3 flex items-center gap-1">
-                                                            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
-                                                            <span className="text-xs sm:text-sm font-medium text-slate-700">
-                                                                {product.rating}
-                                                            </span>
-                                                            <span className="text-xs text-slate-500">
-                                                                ({product.reviews})
-                                                            </span>
-                                                        </div>
-
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-baseline gap-1 sm:gap-2">
-                                                                <span className="text-base sm:text-lg font-bold text-indigo-600">
-                                                                    ${product.price}
-                                                                </span>
-                                                                {product.originalPrice && product.originalPrice > product.price && (
-                                                                    <span className="text-xs text-slate-500 line-through">
-                                                                        ${product.originalPrice}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </Link>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => addToCart(product, e)}
-                                                        className={`mt-3 w-full py-2 px-4 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 ${
-                                                            addedToCart === product.id
-                                                                ? 'bg-green-600 text-white'
-                                                                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-                                                        }`}
+                                        <div className="space-y-1.5 sm:space-y-2">
+                                            {categories.map((category) => (
+                                                <button
+                                                    key={category.id}
+                                                    onClick={() =>
+                                                        setSelectedCategory(
+                                                            category.id,
+                                                        )
+                                                    }
+                                                    className={`flex w-full items-center justify-between rounded-xl p-2 text-left transition-colors sm:p-3 ${
+                                                        selectedCategory ===
+                                                        category.id
+                                                            ? 'bg-indigo-50 text-indigo-600'
+                                                            : 'hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2 sm:gap-3">
+                                                        {category.icon}
+                                                        <span className="text-sm font-medium sm:text-base">
+                                                            {category.name}
+                                                        </span>
+                                                    </div>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-xs"
                                                     >
-                                                        <ShoppingCart className="h-4 w-4" />
-                                                        {addedToCart === product.id ? '✓ Added!' : 'Add to Cart'}
-                                                    </button>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
+                                                        {category.count}
+                                                    </Badge>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                )}
+                                </div>
+
+                                {/* Products Grid */}
+                                <div className="flex-1">
+                                    {filteredProducts.length === 0 ? (
+                                        <div className="py-8 text-center sm:py-12">
+                                            <div className="mb-3 text-gray-400 sm:mb-4">
+                                                <Search className="mx-auto h-12 w-12 sm:h-16 sm:w-16" />
+                                            </div>
+                                            <h3 className="mb-1.5 text-lg font-semibold text-gray-600 sm:mb-2 sm:text-xl">
+                                                No products found
+                                            </h3>
+                                            <p className="text-sm text-gray-500 sm:text-base">
+                                                Try adjusting your search or
+                                                filters
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:gap-5 lg:gap-6 xl:grid-cols-4">
+                                            {filteredProducts.map((product) => (
+                                                <Card
+                                                    key={product.id}
+                                                    className="product-grid-card group overflow-hidden transition-all hover:shadow-xl"
+                                                >
+                                                    <CardContent className="p-3 sm:p-4">
+                                                        <Link
+                                                            href={`/product/${product.id}`}
+                                                        >
+                                                            <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-slate-100 sm:mb-4">
+                                                                <img
+                                                                    src={
+                                                                        product.image
+                                                                    }
+                                                                    alt={
+                                                                        product.name
+                                                                    }
+                                                                    className="h-full w-full object-contain p-2 transition-transform group-hover:scale-105 sm:p-4"
+                                                                />
+                                                                <div className="absolute top-2 right-2">
+                                                                    <FavoriteButton
+                                                                        productId={
+                                                                            product.id
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <h3 className="mb-1.5 line-clamp-2 text-xs font-semibold text-slate-800 sm:mb-2 sm:text-sm">
+                                                                {product.name}
+                                                            </h3>
+
+                                                            <div className="mb-2 flex items-center gap-1 sm:mb-3">
+                                                                <Star className="h-3 w-3 fill-amber-400 text-amber-400 sm:h-4 sm:w-4" />
+                                                                <span className="text-xs font-medium text-slate-700 sm:text-sm">
+                                                                    {
+                                                                        product.rating
+                                                                    }
+                                                                </span>
+                                                                <span className="text-xs text-slate-500">
+                                                                    (
+                                                                    {
+                                                                        product.reviews
+                                                                    }
+                                                                    )
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-baseline gap-1 sm:gap-2">
+                                                                    <span className="text-base font-bold text-indigo-600 sm:text-lg">
+                                                                        $
+                                                                        {
+                                                                            product.price
+                                                                        }
+                                                                    </span>
+                                                                    {product.originalPrice &&
+                                                                        product.originalPrice >
+                                                                            product.price && (
+                                                                            <span className="text-xs text-slate-500 line-through">
+                                                                                $
+                                                                                {
+                                                                                    product.originalPrice
+                                                                                }
+                                                                            </span>
+                                                                        )}
+                                                                </div>
+                                                            </div>
+                                                        </Link>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) =>
+                                                                addToCart(
+                                                                    product,
+                                                                    e,
+                                                                )
+                                                            }
+                                                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                                                                addedToCart ===
+                                                                product.id
+                                                                    ? 'bg-green-600 text-white'
+                                                                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                                                            }`}
+                                                        >
+                                                            <ShoppingCart className="h-4 w-4" />
+                                                            {addedToCart ===
+                                                            product.id
+                                                                ? '✓ Added!'
+                                                                : 'Add to Cart'}
+                                                        </button>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </div>
             </AppLayout>
         </>
     );

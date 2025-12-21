@@ -1,8 +1,10 @@
-import AppLayout from '@/layouts/app-layout';
-import { Star } from 'lucide-react';
-import type { Product } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
-import { useState } from 'react';
+import AppLayout from '@/layouts/app-layout';
+import type { Product } from '@/types';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { Star } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 const CART_STORAGE_KEY = 'shopping_cart';
 
@@ -13,13 +15,77 @@ interface ProductPageProps {
 export default function ProductPage({ product }: ProductPageProps) {
     const [quantity, setQuantity] = useState<number>(1);
     const [addedToCart, setAddedToCart] = useState<boolean>(false);
+    const containerRef = useRef<HTMLElement>(null);
+
+    // Product page entrance animations
+    useGSAP(
+        () => {
+            const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+            tl.from('.product-image-container', {
+                opacity: 0,
+                scale: 0.95,
+                duration: 0.7,
+            })
+                .from(
+                    '.product-title',
+                    {
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.5,
+                    },
+                    '-=0.4',
+                )
+                .from(
+                    '.product-price',
+                    {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.4,
+                    },
+                    '-=0.2',
+                )
+                .from(
+                    '.spec-item',
+                    {
+                        opacity: 0,
+                        x: -20,
+                        stagger: 0.08,
+                        duration: 0.4,
+                    },
+                    '-=0.2',
+                )
+                .from(
+                    '.product-actions',
+                    {
+                        opacity: 0,
+                        y: 25,
+                        duration: 0.5,
+                    },
+                    '-=0.2',
+                )
+                .from(
+                    '.product-description',
+                    {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.5,
+                    },
+                    '-=0.2',
+                );
+        },
+        { scope: containerRef },
+    );
 
     const addToCart = () => {
         const cartJson = localStorage.getItem(CART_STORAGE_KEY);
         const cart = cartJson ? JSON.parse(cartJson) : [];
-        
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
-        
+
+        const existingItemIndex = cart.findIndex(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (item: any) => item.id === product.id,
+        );
+
         if (existingItemIndex > -1) {
             cart[existingItemIndex].quantity += quantity;
         } else {
@@ -28,12 +94,12 @@ export default function ProductPage({ product }: ProductPageProps) {
                 name: product.name,
                 price: product.price,
                 image: product.image,
-                quantity: quantity
+                quantity: quantity,
             });
         }
-        
+
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        
+
         // Show success state
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
@@ -45,25 +111,31 @@ export default function ProductPage({ product }: ProductPageProps) {
                 <title>{product.name}</title>
             </head>
 
-            <section className="grid justify-center bg-slate-100 p-4 md:p-8 lg:p-12">
-                <article className="mt-16 grid h-fit max-w-3xl rounded-xl bg-slate-50 p-6 pb-12 text-black shadow-2xl lg:max-w-6xl lg:grid-cols-2">
+            <section
+                ref={containerRef}
+                className="grid justify-center bg-slate-100 p-4 md:p-8 lg:p-12"
+            >
+                <article className="mt-16 grid h-fit max-w-3xl rounded-xl bg-slate-50 p-6 pb-12 text-black shadow-2xl lg:max-w-6xl lg:grid-cols-2 lg:gap-8">
                     <section>
-                        <div className="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm">
+                        <div className="product-image-container relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm">
                             <img
                                 src={product.image}
                                 alt={product.name}
                                 className="h-full w-full object-contain"
                             />
-                            <div className="absolute right-4 top-4">
-                                <FavoriteButton productId={product.id} size="lg" />
+                            <div className="absolute top-4 right-4">
+                                <FavoriteButton
+                                    productId={product.id}
+                                    size="lg"
+                                />
                             </div>
                         </div>
                     </section>
                     <section className="grid content-center">
-                        <h1 className="md: text-3xl text-slate-800">
+                        <h1 className="product-title md: text-3xl text-slate-800">
                             {product.name}
                         </h1>
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="product-price flex items-center justify-between gap-2">
                             <div className="relative mt-2 flex items-center gap-2">
                                 <span className="text-3xl font-bold text-indigo-600">
                                     ${product.price.toFixed(2)}
@@ -80,8 +152,8 @@ export default function ProductPage({ product }: ProductPageProps) {
                             </div>
                         </div>
                         <div className="mt-1 text-base text-slate-500">
-                            <span className='hover:underline hover:text-indigo-600'> 
-                                <a href=''>Reviews: {product.reviews}</a>
+                            <span className="hover:text-indigo-600 hover:underline">
+                                <a href="">Reviews: {product.reviews}</a>
                             </span>
                         </div>
 
@@ -90,13 +162,16 @@ export default function ProductPage({ product }: ProductPageProps) {
                         </h2>
                         <ul className="mt-1 grid gap-1 rounded-lg text-slate-600">
                             {product.specs?.map((spec) => (
-                                <li key={spec.name} className="border-b border-slate-200 pb-1 last:border-b-0">
+                                <li
+                                    key={spec.name}
+                                    className="spec-item border-b border-slate-200 pb-1 last:border-b-0"
+                                >
                                     <strong>{spec.name}:</strong> {spec.value}
                                 </li>
                             ))}
                         </ul>
 
-                        <div className="mt-6">
+                        <div className="product-actions mt-6">
                             <h2 className="mb-2 text-xl font-semibold text-slate-700">
                                 Purchase options
                             </h2>
@@ -111,7 +186,11 @@ export default function ProductPage({ product }: ProductPageProps) {
                                         min="1"
                                         max="10"
                                         value={quantity}
-                                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                        onChange={(e) =>
+                                            setQuantity(
+                                                parseInt(e.target.value) || 1,
+                                            )
+                                        }
                                     />
                                 </div>
 
@@ -119,24 +198,25 @@ export default function ProductPage({ product }: ProductPageProps) {
                                     type="button"
                                     onClick={addToCart}
                                     className={`relative z-0 w-full cursor-pointer overflow-hidden rounded-md py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90 ${
-                                        addedToCart 
-                                            ? 'bg-green-600 after:bg-green-700' 
+                                        addedToCart
+                                            ? 'bg-green-600 after:bg-green-700'
                                             : 'bg-indigo-500 after:bg-indigo-700'
                                     }`}
                                 >
-                                    {addedToCart ? '✓ Added to Cart!' : 'Add to Cart'}
+                                    {addedToCart
+                                        ? '✓ Added to Cart!'
+                                        : 'Add to Cart'}
                                 </button>
-                                
                             </div>
 
-                            <div className="flex items-center gap-4 mt-4"> 
+                            <div className="mt-4 flex items-center gap-4">
                                 <button
                                     type="button"
                                     className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
                                 >
                                     Add review
                                 </button>
-                            
+
                                 <button
                                     type="button"
                                     className="relative z-0 w-full cursor-pointer overflow-hidden rounded-md bg-indigo-500 py-1.5 text-white transition-transform duration-300 ease-bouncy after:absolute after:inset-0 after:-z-10 after:h-full after:w-full after:origin-right after:scale-x-0 after:bg-indigo-700 after:transition-transform after:duration-500 after:ease-in-out hover:after:origin-left hover:after:scale-x-100 active:scale-90"
@@ -146,16 +226,17 @@ export default function ProductPage({ product }: ProductPageProps) {
                             </div>
                         </div>
                     </section>
-                    <article className='col-span-full'>
+                    <article className="product-description col-span-full">
                         <h2 className="mt-2 text-2xl font-semibold text-slate-700">
                             Description/ Product overview
                         </h2>
                         <p className="whitespace-pre-line text-slate-600">
-                        {product.description || 'No description available for this product.'}</p>
+                            {product.description ||
+                                'No description available for this product.'}
+                        </p>
                     </article>
                 </article>
             </section>
-            
         </AppLayout>
     );
 }

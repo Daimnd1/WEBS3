@@ -1,9 +1,10 @@
 import { useFavorites } from '@/lib/FavoritesProvider';
 import { Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useRef } from 'react';
+import gsap from 'gsap';
 
 interface FavoriteButtonProps {
-    productId: string;  
+    productId: string;
     size?: 'sm' | 'md' | 'lg';
     className?: string;
 }
@@ -14,7 +15,7 @@ export function FavoriteButton({
     className = '',
 }: FavoriteButtonProps) {
     const { isFavorite, toggleFavorite } = useFavorites();
-    const [isAnimating, setIsAnimating] = useState(false);
+    const heartRef = useRef<SVGSVGElement>(null);
 
     const favorite = isFavorite(productId);
 
@@ -22,10 +23,23 @@ export function FavoriteButton({
         e.preventDefault();
         e.stopPropagation();
 
-        setIsAnimating(true);
+        const isAdding = !favorite;
         toggleFavorite(productId);
 
-        setTimeout(() => setIsAnimating(false), 300);
+        // GSAP heart pop animation
+        if (heartRef.current) {
+            gsap.timeline()
+                .to(heartRef.current, {
+                    scale: isAdding ? 1.4 : 0.8,
+                    duration: 0.15,
+                    ease: 'power2.out',
+                })
+                .to(heartRef.current, {
+                    scale: 1,
+                    duration: 0.4,
+                    ease: 'elastic.out(1, 0.3)',
+                });
+        }
     };
 
     const sizeClasses = {
@@ -37,12 +51,11 @@ export function FavoriteButton({
     return (
         <button
             onClick={handleClick}
-            className={`rounded-full bg-white p-2 shadow-md transition-all hover:scale-110 hover:shadow-lg ${
-                isAnimating ? 'scale-125' : ''
-            } ${className}`}
+            className={`rounded-full bg-white p-2 shadow-md transition-all hover:scale-110 hover:shadow-lg ${className}`}
             aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
         >
             <Heart
+                ref={heartRef}
                 className={`${sizeClasses[size]} transition-colors ${
                     favorite
                         ? 'fill-red-500 text-red-500'
