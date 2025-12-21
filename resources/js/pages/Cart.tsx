@@ -148,50 +148,29 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
     setCheckoutError('');
     setCheckoutSuccess(false);
 
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (!csrfToken) {
-        throw new Error('CSRF token not found');
-      }
-
-      const response = await fetch('/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
-        },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            id: item.id,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          shipping_address: null,
-        }),
-      });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Checkout failed');
-      }
-
-      setCheckoutSuccess(true);
-      clearCart(); // Clear localStorage cart
-      console.log('Order created:', data.order_id);
-      setTimeout(() => {
-        router.visit('/');
-      }, 2000);
-    } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
-    } finally {
-      setIsCheckingOut(false);
-    }
+    router.post('/checkout', {
+      items: items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      shipping_address: null,
+    }, {
+      onSuccess: (page) => {
+        setCheckoutSuccess(true);
+        clearCart(); // Clear localStorage cart
+        setTimeout(() => {
+          router.visit('/');
+        }, 2000);
+      },
+      onError: (errors) => {
+        const errorMessage = errors.message || errors.items || 'Checkout failed';
+        setCheckoutError(typeof errorMessage === 'string' ? errorMessage : 'An error occurred during checkout');
+      },
+      onFinish: () => {
+        setIsCheckingOut(false);
+      },
+    });
   }
 
   return (
