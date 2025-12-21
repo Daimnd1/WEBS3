@@ -34,11 +34,20 @@ class DatabaseSeeder extends Seeder
         // Seed categories
         $this->call(CategorySeeder::class);
 
+        // Seed product spec attributes
+        $this->call(ProductSpecAttributeSeeder::class);
+
+        // Seed category attributes (link categories to spec attributes)
+        $this->call(CategoryAttributeSeeder::class);
+
         // Seed order statuses
         $this->call(OrderStatusSeeder::class);
 
         // Seed products (10 per category)
         $this->call(ProductSeeder::class);
+
+        // Seed product specs (specifications for each product)
+        $this->call(ProductSpecSeeder::class);
 
         // User::factory(10)->create();
 

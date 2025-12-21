@@ -72,6 +72,7 @@ export interface Review {
 export interface ProductSpec {
     name: string;
     value: string;
+    unit?: string | null;
 }
 
 export interface Category {

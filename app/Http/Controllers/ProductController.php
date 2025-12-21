@@ -67,6 +67,7 @@ class ProductController extends Controller
             return [
                 'name' => $spec->specAttribute->name,
                 'value' => $spec->value,
+                'unit' => $spec->specAttribute->unit,
             ];
         });
 
