@@ -10,7 +10,7 @@ class Review extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'rating',

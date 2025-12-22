@@ -93,7 +93,7 @@ export default function ProductPage({ product }: ProductPageProps) {
                         <ul className="mt-1 grid gap-1 rounded-lg text-slate-600">
                             {product.specs?.map((spec) => (
                                 <li key={spec.name} className="border-b border-slate-200 pb-1 last:border-b-0">
-                                    <strong>{spec.name}:</strong> {spec.value}
+                                    <strong>{spec.name}:</strong> {spec.value}{spec.unit ? ` ${spec.unit}` : ''}
                                 </li>
                             ))}
                         </ul>

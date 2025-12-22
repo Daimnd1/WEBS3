@@ -12,10 +12,10 @@ return new class extends Migration
             Schema::create('order_details', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-                $table->unsignedBigInteger('product_id');
+                $table->uuid('product_id');
                 $table->unsignedInteger('quantity');
                 $table->decimal('unit_price', 10, 2);
-                $table->timestamps();
+                $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict');
             });
         }
     }

@@ -67,6 +67,7 @@ class ProductController extends Controller
             return [
                 'name' => $spec->specAttribute->name,
                 'value' => $spec->value,
+                'unit' => $spec->specAttribute->unit,
             ];
         });
 
@@ -80,7 +81,7 @@ class ProductController extends Controller
                 'rating' => $review->rating,
                 'comment' => $review->comment,
                 'user_name' => $review->user->name ?? 'Anonymous',
-                'created_at' => $review->created_at->format('M d, Y'),
+                'created_at' => $review->created_at ? $review->created_at->format('M d, Y') : 'Recently',
             ];
         });
 
