@@ -11,10 +11,11 @@ return new class extends Migration
         if (!Schema::hasTable('orders')) {
             Schema::create('orders', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->uuid('user_id');
                 $table->foreignId('order_status_id')->constrained('order_statuses')->onDelete('restrict');
                 $table->text('shipping_address')->nullable();
                 $table->timestamps();
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             });
         }
     }
