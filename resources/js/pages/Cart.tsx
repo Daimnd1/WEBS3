@@ -103,6 +103,7 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
             quantity: item.quantity,
             price: item.price,
           })),
+          total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
           shipping_address: shippingAddress,
         }),
       });
@@ -166,6 +167,7 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
             quantity: item.quantity,
             price: item.price,
           })),
+          total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
           shipping_address: null,
         }),
       });
