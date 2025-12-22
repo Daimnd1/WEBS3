@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class DoSProtection
 {
-    protected $maxRequests = 10; 
+    protected $maxRequests = 5; 
     protected $decayMinutes = 1; 
     protected $blockDurationMinutes = 20; 
 
@@ -41,6 +41,26 @@ class DoSProtection
         $attempts = Cache::get($signature, 0);
 
         if ($attempts >= $limit) {
+            if ($this->isAuthRateLimit($request)) {
+                $retryAfter = $this->decayMinutes * 60;
+
+                $this->logEv('login_rate_limit', $request, [
+                    'attempts'    => $attempts,
+                    'blocked'     => false,
+                    'retry_after' => $retryAfter,
+                ]);
+                \Illuminate\Support\Facades\Log::warning('Security login_rate_limit', [
+                    'ip'          => $ip,
+                    'endpoint'    => $request->path(),
+                    'attempts'    => $attempts,
+                    'retry_after' => $retryAfter,
+                    'time'        => now()->toIso8601String(),
+                ]);
+                return response()
+                    ->json(['message' => "Too many attempts. Try again in {$retryAfter} seconds."], 429)
+                    ->withHeaders(['Retry-After' => (string) $retryAfter]);
+            }
+
             $this->block($ip, $request, $attempts);
             return response()->json(['message' => 'Too many requests. Try later.'], 429);
         }
@@ -53,6 +73,13 @@ class DoSProtection
     private function signature(Request $request)
     {
         return 'sign:'.$request->ip().'|'.$request->path();
+    }
+
+    private function isAuthRateLimit(Request $request): bool
+    {
+        $path = $request->path();
+
+        return str_contains($path, 'login') || str_contains($path, 'password');
     }
 
     private function block(string $ip, Request $request, int $attempts)
@@ -82,7 +109,6 @@ class DoSProtection
         $incidents[] = $incidentKey;
         Cache::put('incidents', array_slice($incidents, -500), now()->addHours(12));
 
-        
         Cache::increment('stats:dos_attempts');
 
         $this->logEv('dos_block', $request, ['attempts' => $attempts]);

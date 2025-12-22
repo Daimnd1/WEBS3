@@ -79,28 +79,53 @@ class CheckoutIntegrity
 
         if ($tampered)
         {
+            $ip = $request->ip();
+            $userId = Auth::id();
+            
+            // Block the IP immediately on price tampering
+            Cache::put('blocked:'.$ip, [
+                'ip' => $ip,
+                'endpoint' => $request->path(),
+                                'attempts' => 1,
+                'reason' => 'Price tampering detected',
+                'blocked_at' => now()->toIso8601String(),
+                'expires_at' => now()->addMinutes(30)->toIso8601String(),
+            ], now()->addMinutes(30));
+
+            $list = Cache::get('blocked:list', []);
+            $list[$ip] = now()->getTimestamp();
+            Cache::put('blocked:list', $list, now()->addHours(12));
+            
+            // Store incident with full details for Security Dashboard
             $incidentKey = 'incident:' . uniqid();
             Cache::put($incidentKey, [
-                'type'         => 'checkout_tampering',
-                'ip'           => $request->ip(),
-                'user_id'      => \Illuminate\Support\Facades\Auth::id(),
-                'endpoint'     => $request->path(),
+                'type' => 'checkout_tampering',
+                'ip' => $ip,
+                'endpoint' => $request->path(),
                 'client_total' => $clientTotal,
                 'server_total' => $serverTotal,
-                'ts'           => now()->toIso8601String(),
-            ], now()->addHours(2));
+                'user_id' => $userId,
+                'ts' => now()->toIso8601String(),
+            ], now()->addHours(12));
 
             $incidents = Cache::get('incidents', []);
             $incidents[] = $incidentKey;
-            Cache::put('incidents', array_slice($incidents, -500), now()->addHours(2));
+            Cache::put('incidents', array_slice($incidents, -500), now()->addHours(12));
 
             Cache::increment('stats:tampering_attempts');
 
-            Log::warning('Checkout potential tampering detected', [
-                'ip'     => $request->ip(),
+            Log::warning('Checkout price tampering detected - IP BLOCKED', [
+                'ip'     => $ip,
+                'user_id' => $userId,
                 'client' => $clientTotal,
                 'server' => $serverTotal,
             ]);
+            
+            // Return 403 Forbidden immediately
+            return response()->json([
+                'message' => 'Security violation detected. Your IP has been blocked.',
+                'error' => 'price_tampering'
+            ], 403);
         }
 
         $request->merge(['items' => $correctedItems, 'total' => $serverTotal]);
