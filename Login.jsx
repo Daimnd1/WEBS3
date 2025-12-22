@@ -1,17 +1,36 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
+import Checkbox from '@/components/Checkbox';
+import InputError from '@/components/InputError';
+import InputLabel from '@/components/InputLabel';
+import PrimaryButton from '@/components/PrimaryButton';
+import TextInput from '@/components/TextInput';
+import GuestLayout from '@/layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
-        remember: false,
-    });
+     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
+      email: '',
+      password: '',
+      remember: false,
+
+      
+   });
+
+   const validateEmailLive = (value) => {
+    if (!value) {
+        clearErrors('email');
+        return;
+    }
+
+    if (emailRegex.test(value)) {
+        clearErrors('email');
+    } else {
+        setError({ email: 'Please enter a valid email (example: user@gmail.com).' });
+    }
+};
+
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -47,7 +66,12 @@ export default function Login({ status, canResetPassword }) {
                                         value={data.email}
                                         className="mb-1 block text-sm font-medium text-gray-600 w-full rounded-xl border-slate-800 border px-4 py-2 focus:ring-2 focus:ring-black-400 focus:outline-none"
                                         autoComplete="username"
-                                        onChange={(e) => setData('email', e.target.value)}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setData('email', v);
+                                            validateEmailLive(v);
+                                       }}
+
                                         required
                                     />
                 
@@ -120,3 +144,4 @@ export default function Login({ status, canResetPassword }) {
      </div>
     );
 }
+
