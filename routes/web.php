@@ -7,6 +7,7 @@ use App\Http\Controllers\ReviewController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\SupportChatController;
 
 // Public routes
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -46,3 +47,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
 // Authentication routes
 require __DIR__.'/auth.php';
+
+// Customer Support Chat Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/support/messages', [SupportChatController::class, 'getMessages'])->name('support.messages');
+    Route::post('/support/messages', [SupportChatController::class, 'sendMessage'])->name('support.send');
+    Route::get('/support/unread-count', [SupportChatController::class, 'getUnreadCount'])->name('support.unread');
+});
+
+// Admin Support Dashboard
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/support', [SupportChatController::class, 'adminDashboard'])->name('admin.support');
+});

@@ -36,9 +36,9 @@ const navbar = () => {
                 </Link>
                 {auth.isAdmin && (
                     <Link
-                        href={route('admin.dashboard')}
+                        href="/admin/support"  
                         className="cursor-pointer rounded-lg p-1.5 sm:p-2 text-indigo-500 transition-colors duration-200 hover:text-indigo-700 hover:bg-indigo-50"
-                        title="Admin Dashboard"
+                        title="Admin Support"
                     >
                         <LayoutDashboard size={20} className="sm:w-6 sm:h-6" />
                     </Link>

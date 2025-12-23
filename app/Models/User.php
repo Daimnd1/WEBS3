@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -67,5 +68,13 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role && trim($this->role->name) === 'admin';
+    }
+
+    /** 
+     * Get the user's support messages.
+     */
+    public function supportMessages(): HasMany
+    {
+        return $this->hasMany(SupportMessage::class, 'user_id');
     }
 }
