@@ -1,16 +1,18 @@
 <?php
 
+namespace Tests\Feature\Auth;
+
 use App\Models\User;
 
-test('confirm password screen can be rendered', function () {
+test('password confirmation screen can be rendered', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->get('/confirm-password');
 
-    $response->assertStatus(200);
+    $response->assertOk();
 });
 
-test('password can be confirmed', function () {
+test('user can confirm password with correct password', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/confirm-password', [
@@ -21,12 +23,12 @@ test('password can be confirmed', function () {
     $response->assertSessionHasNoErrors();
 });
 
-test('password is not confirmed with invalid password', function () {
+test('user cannot confirm password with invalid password', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/confirm-password', [
         'password' => 'wrong-password',
     ]);
 
-    $response->assertSessionHasErrors();
+    $response->assertSessionHasErrors('password');
 });

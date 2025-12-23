@@ -1,7 +1,9 @@
 <?php
 
-it('returns a successful response', function () {
+namespace Tests\Feature;
+
+test('homepage returns successful response', function () {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertOk();
 });
