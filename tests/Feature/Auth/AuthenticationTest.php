@@ -1,14 +1,16 @@
 <?php
 
+namespace Tests\Feature\Auth;
+
 use App\Models\User;
 
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
+    $response->assertOk();
 });
 
-test('users can authenticate using the login screen', function () {
+test('user can authenticate with valid credentials', function () {
     $user = User::factory()->create();
 
     $response = $this->post('/login', [
@@ -17,21 +19,22 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('home'));
 });
 
-test('users can not authenticate with invalid password', function () {
+test('user cannot authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $this->post('/login', [
+    $response = $this->post('/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
 
     $this->assertGuest();
+    $response->assertSessionHasErrors('email');
 });
 
-test('users can logout', function () {
+test('authenticated user can logout', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/logout');
