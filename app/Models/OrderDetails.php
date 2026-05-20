@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class OrderDetails extends Model
 {
     use HasUuids;
-    
+
     protected $table = 'order_details';
-    
+    protected $keyType = 'string';
+    public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
@@ -31,5 +32,10 @@ class OrderDetails extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Orders::class, 'order_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

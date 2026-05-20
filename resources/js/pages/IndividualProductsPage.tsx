@@ -35,8 +35,8 @@ export default function ProductPage({ product }: ProductPageProps) {
         }
         
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        
-        // Show success state
+        window.dispatchEvent(new CustomEvent('cart:updated'));
+
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
     };

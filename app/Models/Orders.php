@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Orders extends Model
 {
     use HasUuids;
-    
+
     protected $table = 'orders';
-    
-    public $timestamps = false;
+    protected $keyType = 'string';
+    public $incrementing = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'user_id',

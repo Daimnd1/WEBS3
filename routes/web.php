@@ -43,6 +43,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/products', [App\Http\Controllers\AdminController::class, 'storeProduct'])->name('admin.products.store');
     Route::patch('/products/{product}', [App\Http\Controllers\AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::delete('/products/{product}', [App\Http\Controllers\AdminController::class, 'destroyProduct'])->name('admin.products.destroy');
+    Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders'])->name('admin.orders');
+    Route::patch('/orders/{order}', [App\Http\Controllers\AdminController::class, 'updateOrderStatus'])->name('admin.orders.update');
+    Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
 });
 
 // Authentication routes

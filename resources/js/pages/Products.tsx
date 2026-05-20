@@ -49,7 +49,10 @@ export default function Products({
     categories: dbCategories 
 }: ProductsPageProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchQuery, setSearchQuery] = useState<string>(() => {
+        if (typeof window === 'undefined') return '';
+        return new URLSearchParams(window.location.search).get('search') || '';
+    });
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [addedToCart, setAddedToCart] = useState<string | null>(null);
@@ -77,8 +80,8 @@ export default function Products({
         }
         
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        
-        // Show success state
+        window.dispatchEvent(new CustomEvent('cart:updated'));
+
         setAddedToCart(product.id);
         setTimeout(() => setAddedToCart(null), 1500);
     };

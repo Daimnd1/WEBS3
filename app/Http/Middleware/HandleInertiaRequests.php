@@ -36,9 +36,10 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
-                    'role' => $request->user()->role,
+                    'role' => $request->user()->loadMissing('role')->role,
+                    'isAdmin' => $request->user()->isAdmin(),
                 ] : null,
-                'isAdmin' => $request->user() ? $request->user()->isAdmin() : false, // ADD THIS LINE
+                'isAdmin' => $request->user()?->isAdmin() ?? false,
             ],
         ];
     }

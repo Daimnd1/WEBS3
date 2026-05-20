@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { ArrowLeft, Smartphone, Watch, Laptop, Headphones, Tablet, Camera, Speaker, Monitor } from 'lucide-react';
+import { ArrowLeft, Smartphone, Watch, Laptop, Headphones, Tablet, Camera, Speaker, Monitor, Package, ShoppingBag, Users, DollarSign } from 'lucide-react';
 
 interface ProductSpec {
     id: string;
@@ -75,14 +75,22 @@ interface SpecAttribute {
     unit: string | null;
 }
 
+interface Stats {
+    products: number;
+    orders: number;
+    users: number;
+    revenue: number;
+}
+
 interface Props {
     products: Product[] | null;
     categories: Category[];
     selectedCategoryId?: string;
     specAttributes: SpecAttribute[];
+    stats: Stats;
 }
 
-export default function Dashboard({ products, categories, selectedCategoryId, specAttributes }: Props) {
+export default function Dashboard({ products, categories, selectedCategoryId, specAttributes, stats }: Props) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -206,15 +214,40 @@ export default function Dashboard({ products, categories, selectedCategoryId, sp
         }
     };
 
+    const statCards = [
+        { label: 'Total Products', value: stats.products, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Total Orders', value: stats.orders, icon: ShoppingBag, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Total Users', value: stats.users, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50' },
+        { label: 'Revenue', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50' },
+    ];
+
     return (
-        <AppLayout>
+        <AdminLayout>
             <Head title="Admin Dashboard" />
 
-            <div className="container mx-auto px-4 py-8 mt-16">
+            <div>
                 {!selectedCategoryId ? (
-                    // Category Selection View
+                    // Overview + Category Selection View
                     <div>
-                        <h1 className="text-3xl font-bold mb-8">Select a Category</h1>
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            {statCards.map((s) => {
+                                const Icon = s.icon;
+                                return (
+                                    <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+                                        <div className={`p-3 rounded-xl ${s.bg}`}>
+                                            <Icon size={20} className={s.color} />
+                                        </div>
+                                        <div>
+                                            <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <h1 className="text-2xl font-bold mb-6">Products by Category</h1>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {categories.map((category) => {
                                 const Icon = getCategoryIcon(category.name);
@@ -569,6 +602,6 @@ export default function Dashboard({ products, categories, selectedCategoryId, sp
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

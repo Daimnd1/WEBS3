@@ -93,9 +93,10 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
 
       const response = await fetch('/checkout', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
+          'X-CSRF-TOKEN': csrfToken,
         },
         body: JSON.stringify({
           items: items.map(item => ({
@@ -156,9 +157,10 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
 
       const response = await fetch('/checkout', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
+          'X-CSRF-TOKEN': csrfToken,
         },
         body: JSON.stringify({
           items: items.map(item => ({

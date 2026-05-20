@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -76,11 +76,11 @@ export default function AdminSupportChat() {
     }, [selectedUser]);
 
     return (
-        <AppLayout>
+        <AdminLayout>
             <Head title="Admin - Customer Support" />
-            
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">Customer Support Dashboard</h1>
+
+            <div>
+                <h1 className="text-2xl font-bold mb-6">Customer Support</h1>
 
                 <div className="grid grid-cols-3 gap-6 h-[600px]">
                     {/* Users List */}
@@ -177,6 +177,6 @@ export default function AdminSupportChat() {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

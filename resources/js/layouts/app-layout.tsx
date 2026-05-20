@@ -10,7 +10,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
     const { auth } = usePage().props as any;
-    const isAdmin = auth?.user?.role?.name === 'admin' || auth?.user?.isAdmin === true;
+    const isAdmin = auth?.user?.isAdmin === true || auth?.isAdmin === true;
 
     return (
         <div>
