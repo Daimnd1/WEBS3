@@ -1,15 +1,25 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { Package, ShoppingCart, UserCircle, Heart, ChevronDown, LayoutDashboard } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFavorites } from '@/lib/FavoritesProvider';
-import { useCartCount } from '@/lib/useCartCount';
+import { useCart } from '@/lib/CartProvider';
 import Dropdown from '@/components/Dropdown';
 import { Auth } from '@/types';
 
 const Navbar = () => {
     const { ids } = useFavorites();
-    const { count: cartCount, animating: cartAnimating } = useCartCount();
+    const { cartCount } = useCart();
     const { auth } = usePage().props as unknown as { auth: Auth };
+    const prevCount = useRef(cartCount);
+    const [cartAnimating, setCartAnimating] = useState(false);
+
+    useEffect(() => {
+        if (cartCount > prevCount.current) {
+            setCartAnimating(true);
+            setTimeout(() => setCartAnimating(false), 400);
+        }
+        prevCount.current = cartCount;
+    }, [cartCount]);
     const [searchValue, setSearchValue] = useState('');
 
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {

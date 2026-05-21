@@ -3,9 +3,8 @@ import { Star } from 'lucide-react';
 import type { Product } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import ReviewForm from '@/components/ReviewForm';
+import { useCart } from '@/lib/CartProvider';
 import { useState } from 'react';
-
-const CART_STORAGE_KEY = 'shopping_cart';
 
 interface ProductPageProps {
     product: Product;
@@ -15,28 +14,10 @@ export default function ProductPage({ product }: ProductPageProps) {
     const [quantity, setQuantity] = useState<number>(1);
     const [addedToCart, setAddedToCart] = useState<boolean>(false);
     const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
+    const { addToCart: addToCartCtx } = useCart();
 
     const addToCart = () => {
-        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
-        const cart = cartJson ? JSON.parse(cartJson) : [];
-        
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
-        
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity += quantity;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                quantity: quantity
-            });
-        }
-        
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        window.dispatchEvent(new CustomEvent('cart:updated'));
-
+        addToCartCtx({ id: product.id, name: product.name, price: product.price, image: product.image ?? null }, quantity);
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
     };

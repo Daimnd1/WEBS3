@@ -22,11 +22,17 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
                 setIds(Array.isArray(parsed) ? parsed : []);
             }
         } catch (error) {
-            console.error('Failed to load favorites:', error);
             setIds([]);
         } finally {
             setIsLoaded(true);
         }
+    }, []);
+
+    // Clear favorites when user logs out or switches account
+    useEffect(() => {
+        const handleAuthChange = () => setIds([]);
+        window.addEventListener('auth:changed', handleAuthChange);
+        return () => window.removeEventListener('auth:changed', handleAuthChange);
     }, []);
 
     useEffect(() => {

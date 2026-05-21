@@ -10,6 +10,16 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/products",
+     *     summary="List all products",
+     *     tags={"Products"},
+     *     @OA\Parameter(name="search", in="query", description="Search by name", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="category", in="query", description="Filter by category name", @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="List of products")
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Product::with('category');
@@ -25,18 +35,28 @@ class ProductController extends Controller
         }
 
         $products = $query->get()->map(fn($p) => [
-            'id'            => $p->id,
-            'name'          => $p->name,
-            'price'         => $p->price,
-            'original_price'=> $p->original_price,
-            'image_url'     => $p->image_url,
-            'description'   => $p->description,
-            'category'      => $p->category->name,
+            'id'             => $p->id,
+            'name'           => $p->name,
+            'price'          => $p->price,
+            'original_price' => $p->original_price,
+            'image_url'      => $p->image_url,
+            'description'    => $p->description,
+            'category'       => $p->category->name,
         ]);
 
         return response()->json(['data' => $products]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/products/{id}",
+     *     summary="Get a single product with specs and reviews",
+     *     tags={"Products"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response=200, description="Product details"),
+     *     @OA\Response(response=404, description="Not found")
+     * )
+     */
     public function show(string $id): JsonResponse
     {
         $product = Product::with([
@@ -78,6 +98,14 @@ class ProductController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/categories",
+     *     summary="List all categories with product count",
+     *     tags={"Products"},
+     *     @OA\Response(response=200, description="List of categories")
+     * )
+     */
     public function categories(): JsonResponse
     {
         $categories = Category::withCount('products')->get()->map(fn($c) => [

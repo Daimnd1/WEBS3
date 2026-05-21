@@ -24,6 +24,15 @@ Route::get('/favorites', [ProductController::class, 'favorites'])->name('favorit
 
 
 
+// Cart API (JSON, session auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/cart/data',              [App\Http\Controllers\CartController::class, 'index']);
+    Route::post('/cart/items',            [App\Http\Controllers\CartController::class, 'addItem']);
+    Route::patch('/cart/items/{item}',    [App\Http\Controllers\CartController::class, 'updateItem']);
+    Route::delete('/cart/items/{item}',   [App\Http\Controllers\CartController::class, 'removeItem']);
+    Route::delete('/cart/clear',          [App\Http\Controllers\CartController::class, 'clear']);
+});
+
 // Checkout route
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('auth')->name('checkout');
 

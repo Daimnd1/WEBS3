@@ -1,0 +1,190 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Gimme API",
+    "description": "REST API for the Gimme e-commerce platform. Login first to get a Bearer token, then click Authorize.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "http://localhost:8000" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login and get a Bearer token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@gmail.com" },
+                  "password": { "type": "string", "example": "admin123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Returns token and user info" },
+          "422": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get current authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User info" },
+          "401": { "description": "Unauthenticated" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Revoke current token",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Logged out" },
+          "401": { "description": "Unauthenticated" }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "List all products",
+        "parameters": [
+          { "name": "search", "in": "query", "description": "Search by name", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "description": "Filter by category name", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of products" }
+        }
+      }
+    },
+    "/api/products/{id}": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get a single product with specs and reviews",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Product details" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "List all categories with product count",
+        "responses": {
+          "200": { "description": "List of categories" }
+        }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get current user's orders",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User's orders" },
+          "401": { "description": "Unauthenticated" }
+        }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Place a new order (price is taken from DB, not client)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["items"],
+                "properties": {
+                  "shipping_address": { "type": "string", "example": "123 Main St" },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "description": "Product UUID" },
+                        "quantity": { "type": "integer", "example": 1 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order placed" },
+          "401": { "description": "Unauthenticated" }
+        }
+      }
+    },
+    "/api/admin/orders": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all orders — admin only",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "All orders" },
+          "401": { "description": "Unauthenticated — no token" },
+          "403": { "description": "Forbidden — not an admin" }
+        }
+      }
+    },
+    "/api/admin/orders/{order}": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Update order status — admin only",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "order", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"],
+                    "example": "SHIPPED"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated" },
+          "403": { "description": "Not an admin" }
+        }
+      }
+    }
+  }
+}

@@ -12,9 +12,8 @@ import { Autoplay, Mousewheel, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Category, FeaturedProduct } from '@/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { useCart } from '@/lib/CartProvider';
 import { useState } from 'react';
-
-const CART_STORAGE_KEY = 'shopping_cart';
 
 interface HomeProps {
     categories: Category[];
@@ -23,32 +22,14 @@ interface HomeProps {
 
 export default function Home({ categories, featuredProducts }: HomeProps) {
     const [addedToCart, setAddedToCart] = useState<string | null>(null);
+    const { addToCart: addToCartCtx } = useCart();
 
     const addToCart = (product: any, event?: React.MouseEvent) => {
         if (event) {
             event.preventDefault();
             event.stopPropagation();
         }
-        
-        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
-        const cart = cartJson ? JSON.parse(cartJson) : [];
-        
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
-        
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity += 1;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                quantity: 1
-            });
-        }
-        
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        
+        addToCartCtx({ id: product.id, name: product.name, price: product.price, image: product.image ?? null });
         setAddedToCart(product.id);
         setTimeout(() => setAddedToCart(null), 1500);
     };

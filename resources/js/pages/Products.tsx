@@ -16,8 +16,7 @@ import {
     ShoppingCart,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-
-const CART_STORAGE_KEY = 'shopping_cart';
+import { useCart } from '@/lib/CartProvider';
 
 interface Product {
     id: string;
@@ -56,32 +55,12 @@ export default function Products({
     const [sortBy, setSortBy] = useState<string>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [addedToCart, setAddedToCart] = useState<string | null>(null);
+    const { addToCart: addToCartCtx } = useCart();
 
-    // Add to cart function
     const addToCart = (product: Product, event: React.MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
-        
-        const cartJson = localStorage.getItem(CART_STORAGE_KEY);
-        const cart = cartJson ? JSON.parse(cartJson) : [];
-        
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id);
-        
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity += 1;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                quantity: 1
-            });
-        }
-        
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        window.dispatchEvent(new CustomEvent('cart:updated'));
-
+        addToCartCtx({ id: product.id, name: product.name, price: product.price, image: product.image ?? null });
         setAddedToCart(product.id);
         setTimeout(() => setAddedToCart(null), 1500);
     };

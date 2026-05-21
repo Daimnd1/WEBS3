@@ -12,6 +12,16 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/orders",
+     *     summary="Get current user's orders",
+     *     tags={"Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="User's orders"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $orders = Orders::with(['orderStatus', 'orderDetails'])
@@ -29,13 +39,35 @@ class OrderController extends Controller
         return response()->json(['data' => $orders]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/orders",
+     *     summary="Place a new order",
+     *     tags={"Orders"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="shipping_address", type="string", example="123 Main St"),
+     *             @OA\Property(property="items", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="string"),
+     *                     @OA\Property(property="quantity", type="integer", example=1)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Order placed"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'shipping_address'      => 'nullable|string|max:500',
-            'items'                 => 'required|array|min:1',
-            'items.*.id'            => 'required|string|exists:products,id',
-            'items.*.quantity'      => 'required|integer|min:1',
+            'shipping_address' => 'nullable|string|max:500',
+            'items'            => 'required|array|min:1',
+            'items.*.id'       => 'required|string|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
@@ -50,7 +82,6 @@ class OrderController extends Controller
 
             foreach ($request->items as $item) {
                 $product = \App\Models\Product::findOrFail($item['id']);
-
                 OrderDetails::create([
                     'order_id'   => $order->id,
                     'product_id' => $product->id,
@@ -60,18 +91,24 @@ class OrderController extends Controller
             }
 
             DB::commit();
-
-            return response()->json([
-                'message'  => 'Order placed successfully.',
-                'order_id' => $order->id,
-            ], 201);
+            return response()->json(['message' => 'Order placed.', 'order_id' => $order->id], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to place order.'], 500);
         }
     }
 
-    // Admin: list all orders
+    /**
+     * @OA\Get(
+     *     path="/api/admin/orders",
+     *     summary="Get all orders (admin only)",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="All orders"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Not an admin")
+     * )
+     */
     public function adminIndex(): JsonResponse
     {
         $orders = Orders::with(['user', 'orderStatus', 'orderDetails'])
@@ -89,13 +126,27 @@ class OrderController extends Controller
         return response()->json(['data' => $orders]);
     }
 
-    // Admin: update order status
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/orders/{order}",
+     *     summary="Update order status (admin only)",
+     *     tags={"Admin"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="order", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="SHIPPED",
+     *                 enum={"PENDING","PROCESSING","SHIPPED","DELIVERED","CANCELLED"})
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Status updated"),
+     *     @OA\Response(response=403, description="Not an admin")
+     * )
+     */
     public function updateStatus(Request $request, Orders $order): JsonResponse
     {
-        $request->validate([
-            'status' => 'required|string|exists:order_statuses,name',
-        ]);
-
+        $request->validate(['status' => 'required|string|exists:order_statuses,name']);
         $status = OrderStatuses::where('name', $request->status)->firstOrFail();
         $order->update(['order_status_id' => $status->id]);
 

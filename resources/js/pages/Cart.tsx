@@ -1,64 +1,36 @@
-﻿import { ArrowLeft, Heart, Share2, ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
-import { useState, useEffect } from 'react';
+﻿import { ShoppingCart, X, CreditCard, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { useCart } from '@/lib/CartProvider';
+import axios from 'axios';
 
-interface ProductPageProps {
-    productId?: number;
-}
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-}
-
-const CART_STORAGE_KEY = 'shopping_cart';
-
-export default function CartVisualisationDemo({productId} : ProductPageProps) {
+export default function CartVisualisationDemo() {
   const { auth } = usePage().props as any;
-  
-  // Load cart from localStorage
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === 'undefined') return [];
-    
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
+  const { items, cartCount, updateQuantity, removeFromCart, clearCart } = useCart();
 
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [shippingAddress, setShippingAddress] = useState('');
-  
-  // Save to localStorage whenever items change
-  useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
-  
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const itemCount = cartCount;
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const total = subtotal;
-  
+
   function increaseQty(id: string) {
-    setItems(items.map(item => 
-      item.id === id ? {...item, quantity: item.quantity + 1 } : item));
+    const item = items.find(i => i.id === id);
+    if (item) updateQuantity(id, item.quantity + 1);
   }
 
   function decreaseQty(id: string) {
-    setItems(items.map(item => item.id === id && item.quantity > 1 ? {...item, quantity: item.quantity - 1 } : item));
-  }
-  
-  function removeItem(id: string) {
-    setItems(items.filter(item => item.id !== id));
+    const item = items.find(i => i.id === id);
+    if (item) updateQuantity(id, item.quantity - 1);
   }
 
-  function clearCart() {
-    setItems([]);
-    localStorage.removeItem(CART_STORAGE_KEY);
+  function removeItem(id: string) {
+    removeFromCart(id);
   }
 
   function handleCheckoutClick() {
@@ -86,49 +58,22 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
     setCheckoutSuccess(false);
 
     try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (!csrfToken) {
-        throw new Error('CSRF token not found');
-      }
-
-      const response = await fetch('/checkout', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            id: item.id,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          shipping_address: shippingAddress,
-        }),
+      const { data } = await axios.post('/checkout', {
+        items: items.map(item => ({
+          id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        shipping_address: shippingAddress,
       });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Checkout failed');
-      }
 
       setCheckoutSuccess(true);
       setShippingAddress('');
       setShowAddressModal(false);
-      clearCart(); // Clear localStorage cart
-      console.log('Order created:', data.order_id);
-      setTimeout(() => {
-        router.visit('/');
-      }, 2000);
-    } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
+      clearCart();
+      setTimeout(() => router.visit('/'), 2000);
+    } catch (error: any) {
+      setCheckoutError(error.response?.data?.message || 'Checkout failed');
     } finally {
       setIsCheckingOut(false);
     }
@@ -150,47 +95,20 @@ export default function CartVisualisationDemo({productId} : ProductPageProps) {
     setCheckoutSuccess(false);
 
     try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (!csrfToken) {
-        throw new Error('CSRF token not found');
-      }
-
-      const response = await fetch('/checkout', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            id: item.id,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          shipping_address: null,
-        }),
+      await axios.post('/checkout', {
+        items: items.map(item => ({
+          id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        shipping_address: null,
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Checkout failed');
-      }
-
       setCheckoutSuccess(true);
-      clearCart(); // Clear localStorage cart
-      console.log('Order created:', data.order_id);
-      setTimeout(() => {
-        router.visit('/');
-      }, 2000);
-    } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : 'An error occurred during checkout');
+      clearCart();
+      setTimeout(() => router.visit('/'), 2000);
+    } catch (error: any) {
+      setCheckoutError(error.response?.data?.message || 'Checkout failed');
     } finally {
       setIsCheckingOut(false);
     }
